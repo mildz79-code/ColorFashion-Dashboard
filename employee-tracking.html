@@ -1,766 +1,768 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>OpsMaster — Employee Tracking</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OpsMaster — Textile Operations Dashboard</title>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
   :root {
-    --bg-base:    #0d1117;
-    --bg-surface: #161b22;
-    --bg-card:    #1c2230;
-    --bg-hover:   #222d3d;
-    --border:     rgba(99,130,168,0.15);
-    --border-hi:  rgba(99,130,168,0.3);
-    --text-1:     #e6edf3;
-    --text-2:     #8b949e;
-    --text-3:     #484f58;
-    --blue:       #388bfd;
-    --blue-dim:   rgba(56,139,253,0.15);
-    --teal:       #39d353;
-    --teal-dim:   rgba(57,211,83,0.12);
-    --amber:      #d29922;
-    --amber-dim:  rgba(210,153,34,0.15);
-    --red:        #f85149;
-    --red-dim:    rgba(248,81,73,0.12);
-    --purple:     #a371f7;
-    --purple-dim: rgba(163,113,247,0.12);
-    --radius-sm:  6px;
-    --radius-md:  10px;
-    --radius-lg:  14px;
-    --font:       'DM Sans', sans-serif;
-    --mono:       'DM Mono', monospace;
+    --bg: #071426;
+    --bg-alt: #0c1d36;
+    --panel: rgba(12, 29, 54, 0.92);
+    --panel-2: rgba(18, 40, 70, 0.96);
+    --border: rgba(143, 177, 222, 0.16);
+    --border-strong: rgba(143, 177, 222, 0.28);
+    --text: #f5f8ff;
+    --muted: #9fb3cf;
+    --green: #23d18b;
+    --yellow: #ffcc4d;
+    --red: #ff5f6d;
+    --cyan: #69b7ff;
+    --blue: #3d7eff;
+    --shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+    --radius: 22px;
   }
 
-  body {
-    background: var(--bg-base);
-    color: var(--text-1);
-    font-family: var(--font);
-    font-size: 14px;
-    line-height: 1.5;
-    display: flex;
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: radial-gradient(circle at top left, #123761 0%, var(--bg) 38%, #04101f 100%); color: var(--text); font-family: Inter, sans-serif; }
+  body { min-height: 100vh; }
+
+  .app-shell {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 24px;
     min-height: 100vh;
   }
 
-  /* ── Sidebar ── */
+  .sidebar, .panel, .kpi-card, .issue-item, .insight-card, .gauge-card {
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+  }
+
   .sidebar {
-    width: 200px;
-    min-height: 100vh;
-    background: var(--bg-surface);
-    border-right: 1px solid var(--border);
+    background: rgba(7, 20, 38, 0.92);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 24px 18px;
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
-  }
-  .sidebar-logo {
-    padding: 20px 18px 16px;
-    font-size: 17px;
-    font-weight: 600;
-    color: var(--text-1);
-    border-bottom: 1px solid var(--border);
-    letter-spacing: -0.3px;
-  }
-  .sidebar-nav { padding: 10px 0; flex: 1; }
-  .nav-item {
-    display: block;
-    padding: 9px 18px;
-    color: var(--text-2);
-    font-size: 13px;
-    font-weight: 400;
-    cursor: pointer;
-    border-left: 2px solid transparent;
-    transition: all 0.15s;
-  }
-  .nav-item:hover { color: var(--text-1); background: var(--bg-hover); }
-  .nav-item.active {
-    color: var(--blue);
-    background: var(--blue-dim);
-    border-left-color: var(--blue);
-    font-weight: 500;
+    gap: 28px;
   }
 
-  /* ── Main content ── */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-  .topbar {
-    padding: 18px 24px 14px;
-    border-bottom: 1px solid var(--border);
+  .brand {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    background: var(--bg-surface);
+    flex-direction: column;
+    gap: 10px;
   }
-  .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; color: var(--text-1); }
-  .page-sub   { font-size: 12px; color: var(--text-2); margin-top: 2px; }
 
-  .topbar-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+  .brand-badge {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, rgba(61,126,255,0.25), rgba(35,209,139,0.25));
+    color: white;
+    font-size: 22px;
+    font-weight: 800;
+  }
 
-  .btn {
-    padding: 7px 14px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    font-family: var(--font);
-    font-weight: 500;
+  .brand h1 { margin: 0; font-size: 20px; line-height: 1.1; }
+  .brand p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+  .nav-group { display: flex; flex-direction: column; gap: 10px; }
+  .nav-label { color: var(--muted); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+
+  .nav-button {
+    border: 1px solid transparent;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    padding: 14px 16px;
+    text-align: left;
     cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s ease;
+  }
+
+  .nav-button:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+  .nav-button.active { background: linear-gradient(135deg, rgba(61,126,255,0.28), rgba(105,183,255,0.18)); border-color: rgba(105,183,255,0.4); }
+
+  .status-block {
+    margin-top: auto;
+    background: rgba(255,255,255,0.04);
     border: 1px solid var(--border);
-    background: var(--bg-card);
-    color: var(--text-1);
-    transition: all 0.15s;
-    display: flex; align-items: center; gap: 6px;
+    border-radius: 20px;
+    padding: 16px;
+    display: grid;
+    gap: 10px;
   }
-  .btn:hover { background: var(--bg-hover); border-color: var(--border-hi); }
-  .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
-  .btn-primary:hover { background: #4a9fff; border-color: #4a9fff; }
 
-  .content { padding: 20px 24px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 18px; }
+  .status-row { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; }
+  .status-row strong { color: var(--text); font-size: 13px; }
 
-  /* ── Cards ── */
-  .card {
-    background: var(--bg-card);
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+  }
+
+  .hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+  }
+
+  .hero h2 { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.03em; }
+  .hero p { margin: 8px 0 0; color: var(--muted); font-size: 15px; max-width: 720px; }
+
+  .meta-pills { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
+  .meta-pill {
+    background: rgba(255,255,255,0.05);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
+    border-radius: 999px;
+    padding: 12px 16px;
+    min-width: 150px;
   }
-  .card-header {
-    padding: 14px 18px 12px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .card-title { font-size: 14px; font-weight: 500; color: var(--text-1); }
-  .card-body  { padding: 18px; }
+  .meta-pill span { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; }
+  .meta-pill strong { font-size: 16px; }
 
-  /* ── KPI grid ── */
-  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+
   .kpi-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 16px 18px;
     position: relative;
+    background: linear-gradient(180deg, rgba(14,34,61,0.98), rgba(10,24,46,0.96));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
     overflow: hidden;
+    min-height: 170px;
   }
-  .kpi-card::before {
+
+  .kpi-card::after {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-  }
-  .kpi-card.blue::before   { background: var(--blue); }
-  .kpi-card.teal::before   { background: var(--teal); }
-  .kpi-card.amber::before  { background: var(--amber); }
-  .kpi-card.purple::before { background: var(--purple); }
-
-  .kpi-label { font-size: 11px; font-weight: 500; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.6px; }
-  .kpi-value { font-size: 28px; font-weight: 600; color: var(--text-1); margin: 6px 0 2px; letter-spacing: -1px; line-height: 1; }
-  .kpi-sub   { font-size: 11px; color: var(--text-2); }
-  .kpi-icon  {
-    position: absolute; top: 14px; right: 16px;
-    width: 32px; height: 32px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px;
-  }
-  .kpi-icon.blue   { background: var(--blue-dim);   color: var(--blue); }
-  .kpi-icon.teal   { background: var(--teal-dim);   color: var(--teal); }
-  .kpi-icon.amber  { background: var(--amber-dim);  color: var(--amber); }
-  .kpi-icon.purple { background: var(--purple-dim); color: var(--purple); }
-
-  /* ── Two-col layout ── */
-  .two-col { display: grid; grid-template-columns: 1fr 340px; gap: 18px; }
-
-  /* ── Dept headcount ── */
-  .dept-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .dept-row:last-child { border-bottom: none; padding-bottom: 0; }
-  .dept-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .dept-name { font-size: 13px; color: var(--text-1); font-weight: 500; flex: 1; min-width: 0; }
-  .dept-count { font-size: 13px; color: var(--text-2); font-variant-numeric: tabular-nums; width: 32px; text-align: right; }
-  .dept-bar-wrap { width: 100px; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .dept-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
-
-  /* ── Employee table ── */
-  .emp-table { width: 100%; border-collapse: collapse; }
-  .emp-table th {
-    padding: 9px 12px;
-    text-align: left;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-2);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-  .emp-table td {
-    padding: 11px 12px;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-    color: var(--text-1);
-    vertical-align: middle;
-  }
-  .emp-table tr:last-child td { border-bottom: none; }
-  .emp-table tr:hover td { background: var(--bg-hover); }
-
-  .avatar {
-    width: 28px; height: 28px; border-radius: 50%;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 600; color: #fff; flex-shrink: 0;
-  }
-  .emp-name-cell { display: flex; align-items: center; gap: 9px; }
-  .emp-name      { font-weight: 500; }
-  .emp-id        { font-size: 11px; color: var(--text-2); font-family: var(--mono); }
-
-  .badge {
-    display: inline-flex; align-items: center;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-  .badge-active   { background: var(--teal-dim);   color: var(--teal); }
-  .badge-inactive { background: var(--border);      color: var(--text-2); }
-  .badge-leave    { background: var(--amber-dim);   color: var(--amber); }
-  .badge-shift-a  { background: var(--blue-dim);    color: var(--blue); }
-  .badge-shift-b  { background: var(--purple-dim);  color: var(--purple); }
-
-  .hours-bar { display: flex; align-items: center; gap: 8px; }
-  .hours-bar-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; min-width: 60px; }
-  .hours-bar-fill  { height: 100%; background: var(--blue); border-radius: 2px; }
-
-  /* ── Shift presence ── */
-  .shift-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .shift-tile {
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 12px 14px;
-  }
-  .shift-dept   { font-size: 11px; font-weight: 500; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-  .shift-count  { font-size: 22px; font-weight: 600; color: var(--text-1); letter-spacing: -0.5px; line-height: 1; }
-  .shift-label  { font-size: 11px; color: var(--text-2); margin-top: 3px; }
-
-  /* ── Import panel ── */
-  .import-zone {
-    border: 1.5px dashed var(--border-hi);
-    border-radius: var(--radius-md);
-    padding: 22px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .import-zone:hover { border-color: var(--blue); background: var(--blue-dim); }
-  .import-zone.drag-over { border-color: var(--blue); background: var(--blue-dim); }
-  .import-icon { font-size: 24px; margin-bottom: 8px; opacity: 0.6; }
-  .import-text  { font-size: 13px; color: var(--text-2); }
-  .import-text span { color: var(--blue); font-weight: 500; }
-
-  .import-history { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
-  .import-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 9px 12px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-size: 12px;
-  }
-  .import-row-name { color: var(--text-1); flex: 1; font-family: var(--mono); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .import-row-meta { color: var(--text-2); flex-shrink: 0; }
-  .badge-ok   { background: var(--teal-dim);  color: var(--teal);  padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 500; }
-  .badge-warn { background: var(--amber-dim); color: var(--amber); padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 500; }
-  .badge-fail { background: var(--red-dim);   color: var(--red);   padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 500; }
-
-  /* ── Donut ── */
-  .donut-wrap { position: relative; width: 110px; height: 110px; margin: 0 auto; }
-  .donut-label {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
+    inset: auto -10% -42% -10%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(255,255,255,0.16), transparent 64%);
+    opacity: 0.2;
     pointer-events: none;
   }
-  .donut-pct  { font-size: 20px; font-weight: 600; color: var(--text-1); letter-spacing: -0.5px; }
-  .donut-sub  { font-size: 11px; color: var(--text-2); }
 
-  /* ── Filter bar ── */
-  .filter-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .filter-select {
-    padding: 6px 10px;
-    background: var(--bg-card);
+  .severity-green { box-shadow: var(--shadow), inset 0 0 0 1px rgba(35,209,139,0.12); }
+  .severity-yellow { box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,204,77,0.18); }
+  .severity-red { box-shadow: var(--shadow), 0 0 24px rgba(255,95,109,0.26), inset 0 0 0 1px rgba(255,95,109,0.22); }
+
+  .kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .eyebrow { color: var(--muted); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .status-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    box-shadow: 0 0 14px currentColor;
+  }
+  .green { color: var(--green); background: var(--green); }
+  .yellow { color: var(--yellow); background: var(--yellow); }
+  .red { color: var(--red); background: var(--red); }
+
+  .kpi-value { margin: 16px 0 10px; font-size: clamp(34px, 4vw, 58px); font-weight: 800; letter-spacing: -0.06em; line-height: 0.95; }
+  .kpi-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+  .trend { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 999px; font-weight: 700; }
+  .trend.up { background: rgba(35,209,139,0.14); color: #90f1c6; }
+  .trend.down { background: rgba(255,95,109,0.16); color: #ff9ba4; }
+
+  .panel-grid { display: grid; grid-template-columns: minmax(0, 2fr) 360px; gap: 18px; }
+  .panel, .gauge-card, .insight-card {
+    background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text-1);
-    font-family: var(--font);
+    border-radius: 26px;
+    padding: 20px;
+    min-width: 0;
+  }
+
+  .panel-header, .stack-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+  .panel-title { font-size: 20px; font-weight: 700; margin: 0; }
+  .panel-subtitle { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .panel-tag {
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    padding: 10px 14px;
     font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .chart-shell { position: relative; height: 330px; }
+  .line-chart-small { position: relative; height: 280px; }
+
+  .stack { display: grid; gap: 18px; }
+
+  .gauge-wrap { display: grid; place-items: center; padding: 4px 0 2px; }
+  .gauge-svg { width: 100%; max-width: 240px; overflow: visible; }
+  .gauge-center { text-align: center; margin-top: -18px; }
+  .gauge-value { font-size: 46px; font-weight: 800; letter-spacing: -0.06em; }
+  .gauge-label { color: var(--muted); font-size: 13px; }
+  .gauge-scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-top: 12px; }
+
+  .insight-card { display: grid; gap: 14px; }
+  .insight-banner {
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255,95,109,0.2), rgba(255,204,77,0.12));
+    border: 1px solid rgba(255,95,109,0.18);
+    padding: 16px;
+  }
+  .insight-banner strong { display: block; font-size: 18px; margin-bottom: 6px; }
+  .insight-list { display: grid; gap: 12px; }
+  .insight-item {
+    border-radius: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    padding: 14px;
+  }
+  .insight-item span { color: var(--muted); font-size: 12px; display: block; margin-bottom: 5px; }
+
+  .line-toolbar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .line-chip {
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 12px 18px;
     cursor: pointer;
-    outline: none;
+    font-weight: 700;
+    transition: 0.2s ease;
   }
-  .filter-select:focus { border-color: var(--blue); }
-  .search-input {
-    padding: 6px 10px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text-1);
-    font-family: var(--font);
-    font-size: 12px;
-    outline: none;
-    width: 180px;
-  }
-  .search-input::placeholder { color: var(--text-3); }
-  .search-input:focus { border-color: var(--blue); }
+  .line-chip.active { background: linear-gradient(135deg, rgba(61,126,255,0.32), rgba(35,209,139,0.16)); border-color: rgba(105,183,255,0.34); }
 
-  canvas { max-width: 100%; }
+  .issues-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .issue-item {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+    display: grid;
+    gap: 10px;
+  }
+  .issue-item small { color: var(--muted); text-transform: uppercase; letter-spacing: 0.14em; font-size: 11px; }
+  .issue-item strong { font-size: 22px; }
+  .issue-item p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+  .alert-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 7px 12px;
+    width: fit-content;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .alert-pill.green-bg { background: rgba(35,209,139,0.14); color: #92efc5; }
+  .alert-pill.yellow-bg { background: rgba(255,204,77,0.16); color: #ffe39a; }
+  .alert-pill.red-bg { background: rgba(255,95,109,0.16); color: #ffb0b7; }
+
+  @media (max-width: 1400px) {
+    .app-shell { grid-template-columns: 1fr; }
+    .sidebar { order: 2; }
+    .panel-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 1100px) {
+    .kpi-grid, .issues-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hero { flex-direction: column; }
+    .meta-pills { justify-content: flex-start; }
+  }
+
+  @media (max-width: 720px) {
+    .app-shell { padding: 14px; }
+    .kpi-grid, .issues-grid { grid-template-columns: 1fr; }
+    .meta-pill { min-width: 0; }
+  }
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
+const { useEffect, useMemo, useRef, useState } = React;
 
-// ── Mock data (replace with Supabase queries) ─────────────────────────────────
-const MOCK_EMPLOYEES = [
-  { id:1, wasp_id:'E001', first_name:'Sarah',   last_name:'Jenkins',   department:'Dyeing',      job_title:'Lead Dyer',         pay_rate:22.50, status:'active',   shift:'SHIFT A', hours_this_week:38.5, is_clocked_in:true  },
-  { id:2, wasp_id:'E002', first_name:'Marcus',  last_name:'Tsoi',      department:'Shipping',    job_title:'Shipping Lead',     pay_rate:20.00, status:'active',   shift:'SHIFT B', hours_this_week:40.0, is_clocked_in:true  },
-  { id:3, wasp_id:'E003', first_name:'Elena',   last_name:'Rodriguez', department:'Finishing',   job_title:'Finisher',          pay_rate:18.75, status:'active',   shift:'SHIFT A', hours_this_week:35.0, is_clocked_in:false },
-  { id:4, wasp_id:'E004', first_name:'James',   last_name:'Park',      department:'Maintenance', job_title:'Technician',        pay_rate:25.00, status:'active',   shift:'SHIFT A', hours_this_week:40.0, is_clocked_in:true  },
-  { id:5, wasp_id:'E005', first_name:'Priya',   last_name:'Nair',      department:'Office',      job_title:'Office Coordinator',pay_rate:21.00, status:'active',   shift:'SHIFT A', hours_this_week:40.0, is_clocked_in:false },
-  { id:6, wasp_id:'E006', first_name:'Carlos',  last_name:'Mendez',    department:'Dyeing',      job_title:'Dyer',              pay_rate:19.50, status:'active',   shift:'SHIFT B', hours_this_week:32.0, is_clocked_in:false },
-  { id:7, wasp_id:'E007', first_name:'Aisha',   last_name:'Williams',  department:'Shipping',    job_title:'Packer',            pay_rate:17.00, status:'on_leave', shift:'SHIFT A', hours_this_week:0,    is_clocked_in:false },
-  { id:8, wasp_id:'E008', first_name:'Tom',     last_name:'Chen',      department:'Finishing',   job_title:'Senior Finisher',   pay_rate:22.00, status:'active',   shift:'SHIFT B', hours_this_week:38.0, is_clocked_in:true  },
-];
-
-const MOCK_IMPORTS = [
-  { id:1, file_name:'wasp_payroll_2025_w12.csv', imported_at:'2025-03-21 09:14', total_employees:8, total_hours:263.5, status:'completed' },
-  { id:2, file_name:'wasp_payroll_2025_w11.csv', imported_at:'2025-03-14 08:52', total_employees:8, total_hours:278.0, status:'completed' },
-  { id:3, file_name:'wasp_payroll_2025_w10.csv', imported_at:'2025-03-07 09:03', total_employees:8, total_hours:241.5, status:'partial'   },
-];
-
-const DEPT_COLORS = {
-  Dyeing:      '#388bfd',
-  Shipping:    '#39d353',
-  Finishing:   '#a371f7',
-  Office:      '#d29922',
-  Maintenance: '#f78166',
+const liveContext = {
+  timestamp: '2026-03-23 14:32 UTC',
+  shift_name: 'Shift B',
+  line_name: 'Line 2',
 };
 
-const AVATAR_COLORS = ['#388bfd','#39d353','#a371f7','#d29922','#f78166','#4ac6b7','#e06c75','#61afef'];
+const executiveMetrics = [
+  {
+    label: 'Total Payroll',
+    value: '$184.2K',
+    change: '+4.8%',
+    direction: 'up',
+    state: 'green',
+    detail: 'vs. previous shift cycle',
+    placeholder: 'payroll_totals',
+  },
+  {
+    label: 'Overtime Hours',
+    value: '11.6%',
+    change: '+2.1%',
+    direction: 'up',
+    state: 'red',
+    detail: 'overtime_hours / shift hours',
+    placeholder: 'overtime_hours',
+  },
+  {
+    label: 'Employee Count',
+    value: '428',
+    change: '+1.3%',
+    direction: 'up',
+    state: 'green',
+    detail: 'active operators on floor',
+    placeholder: 'employee_count',
+  },
+  {
+    label: 'Tax Withholdings',
+    value: '$41.9K',
+    change: '-0.6%',
+    direction: 'down',
+    state: 'yellow',
+    detail: 'current payroll run',
+    placeholder: 'tax_withholdings',
+  },
+];
 
-function initials(f, l) { return (f[0] + (l[0] || '')).toUpperCase(); }
+const plantSeries = {
+  labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00'],
+  laborCosts: [82, 88, 91, 96, 101, 107, 112],
+  output: [72, 79, 83, 90, 94, 102, 108],
+};
 
-// ── Donut chart (canvas) ──────────────────────────────────────────────────────
-function DonutChart({ pct, color, label }) {
-  const ref = useRef();
-  useEffect(() => {
-    const ctx = ref.current.getContext('2d');
-    const chart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        datasets: [{
-          data: [pct, 100 - pct],
-          backgroundColor: [color, 'rgba(99,130,168,0.12)'],
-          borderWidth: 0,
-          borderRadius: 4,
-        }]
-      },
-      options: {
-        cutout: '72%',
-        plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        animation: { duration: 800, easing: 'easeInOutQuart' },
-      }
-    });
-    return () => chart.destroy();
-  }, [pct, color]);
-  return (
-    <div className="donut-wrap">
-      <canvas ref={ref} width="110" height="110"/>
-      <div className="donut-label">
-        <span className="donut-pct">{pct}%</span>
-        <span className="donut-sub">{label}</span>
-      </div>
-    </div>
-  );
+const lineData = {
+  'Line 1': {
+    overtimeHours: 3.8,
+    activeEmployees: 108,
+    outputPerHour: 1260,
+    laborCostPerUnit: 2.94,
+    alerts: {
+      overtime: { state: 'green', text: 'Normal load' },
+      staffing: { state: 'green', text: 'Crew fully staffed' },
+      throughput: { state: 'yellow', text: 'Speed variation in finishing' },
+    },
+    issues: [
+      { title: 'Absenteeism', value: '2 operators', note: 'Below weekly average, no escalation required.', state: 'green' },
+      { title: 'Overtime spikes', value: '3.8%', note: 'Within tolerance under the <5% threshold.', state: 'green' },
+      { title: 'Bottlenecks', value: 'Loom reset', note: 'Intermittent reset cycle adding 4 min per lot.', state: 'yellow' },
+    ],
+    trend: {
+      labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00'],
+      output: [1110, 1160, 1188, 1214, 1240, 1260],
+      laborCost: [2.84, 2.88, 2.92, 2.9, 2.93, 2.94],
+    },
+  },
+  'Line 2': {
+    overtimeHours: 11.6,
+    activeEmployees: 96,
+    outputPerHour: 980,
+    laborCostPerUnit: 3.48,
+    alerts: {
+      overtime: { state: 'red', text: 'Critical >10% threshold' },
+      staffing: { state: 'yellow', text: 'Absence cover needed' },
+      throughput: { state: 'red', text: 'Output below takt target' },
+    },
+    issues: [
+      { title: 'Absenteeism', value: '7 operators', note: 'Two dye-house technicians and five assemblers absent.', state: 'yellow' },
+      { title: 'Overtime spikes', value: '11.6%', note: 'Critical overtime has risen since previous shift.', state: 'red' },
+      { title: 'Bottlenecks', value: 'Dye changeover', note: 'Color change queue delaying dispatch by 18 minutes.', state: 'red' },
+    ],
+    trend: {
+      labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00'],
+      output: [1090, 1072, 1044, 1010, 995, 980],
+      laborCost: [3.02, 3.12, 3.19, 3.31, 3.4, 3.48],
+    },
+  },
+  'Line 3': {
+    overtimeHours: 7.2,
+    activeEmployees: 102,
+    outputPerHour: 1185,
+    laborCostPerUnit: 3.08,
+    alerts: {
+      overtime: { state: 'yellow', text: 'Watch closely' },
+      staffing: { state: 'green', text: 'Balanced labor allocation' },
+      throughput: { state: 'green', text: 'Stable throughput' },
+    },
+    issues: [
+      { title: 'Absenteeism', value: '3 operators', note: 'Backfill assigned from finishing pool.', state: 'green' },
+      { title: 'Overtime spikes', value: '7.2%', note: 'Inside warning band of 5–10% of shift hours.', state: 'yellow' },
+      { title: 'Bottlenecks', value: 'Packing queue', note: 'Minor queue detected, actioned by support crew.', state: 'yellow' },
+    ],
+    trend: {
+      labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00'],
+      output: [1140, 1155, 1160, 1178, 1181, 1185],
+      laborCost: [2.96, 2.99, 3.01, 3.04, 3.07, 3.08],
+    },
+  },
+};
+
+function stateClass(state) {
+  return state === 'red' ? 'severity-red' : state === 'yellow' ? 'severity-yellow' : 'severity-green';
 }
 
-// ── Bar chart for dept headcount ──────────────────────────────────────────────
-function HeadcountChart({ depts }) {
-  const ref = useRef();
+function pillClass(state) {
+  return state === 'red' ? 'red-bg' : state === 'yellow' ? 'yellow-bg' : 'green-bg';
+}
+
+function dotClass(state) {
+  return state === 'red' ? 'status-dot red' : state === 'yellow' ? 'status-dot yellow' : 'status-dot green';
+}
+
+function ChartPanel({ id, labels, leftLabel, rightLabel, leftData, rightData, leftColor, rightColor, height = 330 }) {
+  const canvasRef = useRef(null);
+
   useEffect(() => {
-    const ctx = ref.current.getContext('2d');
-    const chart = new Chart(ctx, {
-      type: 'bar',
+    const chart = new Chart(canvasRef.current, {
+      type: 'line',
       data: {
-        labels: depts.map(d => d.name),
-        datasets: [{
-          data: depts.map(d => d.count),
-          backgroundColor: depts.map(d => DEPT_COLORS[d.name] + '33'),
-          borderColor:     depts.map(d => DEPT_COLORS[d.name]),
-          borderWidth: 1.5,
-          borderRadius: 4,
-        }]
+        labels,
+        datasets: [
+          {
+            label: leftLabel,
+            data: leftData,
+            borderColor: leftColor,
+            backgroundColor: leftColor,
+            tension: 0.35,
+            borderWidth: 4,
+            pointRadius: 0,
+            yAxisID: 'y',
+          },
+          {
+            label: rightLabel,
+            data: rightData,
+            borderColor: rightColor,
+            backgroundColor: rightColor,
+            tension: 0.35,
+            borderWidth: 4,
+            pointRadius: 0,
+            yAxisID: 'y1',
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: {
-          backgroundColor: '#1c2230',
-          borderColor: 'rgba(99,130,168,0.2)',
-          borderWidth: 1,
-          titleColor: '#e6edf3',
-          bodyColor: '#8b949e',
-          padding: 10,
-        }},
-        scales: {
-          x: { grid: { color: 'rgba(99,130,168,0.08)' }, ticks: { color: '#8b949e', font: { size: 11 } } },
-          y: { grid: { color: 'rgba(99,130,168,0.08)' }, ticks: { color: '#8b949e', font: { size: 11 }, stepSize: 1 }, beginAtZero: true },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: { color: '#dbe6f8', usePointStyle: true, boxWidth: 10, padding: 18, font: { size: 12, weight: '600' } },
+          },
+          tooltip: {
+            backgroundColor: 'rgba(7,20,38,0.96)',
+            titleColor: '#ffffff',
+            bodyColor: '#d7e6ff',
+            borderColor: 'rgba(143,177,222,0.24)',
+            borderWidth: 1,
+            padding: 12,
+          },
         },
-      }
+        scales: {
+          x: {
+            ticks: { color: '#9fb3cf', font: { size: 12, weight: '600' } },
+            grid: { color: 'rgba(143,177,222,0.08)' },
+          },
+          y: {
+            position: 'left',
+            ticks: { color: '#9fb3cf', font: { size: 12 } },
+            grid: { color: 'rgba(143,177,222,0.08)' },
+          },
+          y1: {
+            position: 'right',
+            ticks: { color: '#9fb3cf', font: { size: 12 } },
+            grid: { drawOnChartArea: false },
+          },
+        },
+      },
     });
+
     return () => chart.destroy();
-  }, []);
-  return <canvas ref={ref} style={{ width: '100%', height: '160px' }}/>;
+  }, [labels, leftLabel, rightLabel, leftData, rightData, leftColor, rightColor, id]);
+
+  return <div className={height < 300 ? 'line-chart-small' : 'chart-shell'} style={{ height }}><canvas ref={canvasRef} /></div>;
 }
 
-// ── Main App ──────────────────────────────────────────────────────────────────
-function App() {
-  const [employees, setEmployees]   = useState(MOCK_EMPLOYEES);
-  const [filterDept, setFilterDept] = useState('All');
-  const [filterStatus, setStatus]   = useState('All');
-  const [search, setSearch]         = useState('');
-  const [dragOver, setDragOver]     = useState(false);
-  const [importing, setImporting]   = useState(false);
-  const [importMsg, setImportMsg]   = useState(null);
-  const fileRef = useRef();
-
-  // Derived stats
-  const active      = employees.filter(e => e.status === 'active').length;
-  const clockedIn   = employees.filter(e => e.is_clocked_in).length;
-  const floorPct    = Math.round((clockedIn / active) * 100);
-  const totalHrsWk  = employees.reduce((s, e) => s + (e.hours_this_week || 0), 0);
-
-  const depts = [...new Set(employees.map(e => e.department))].map(name => ({
-    name,
-    count:  employees.filter(e => e.department === name && e.status === 'active').length,
-    active: employees.filter(e => e.department === name && e.is_clocked_in).length,
-  }));
-
-  const maxCount = Math.max(...depts.map(d => d.count), 1);
-
-  // Filter
-  const filtered = employees.filter(e => {
-    const deptOk   = filterDept === 'All' || e.department === filterDept;
-    const statOk   = filterStatus === 'All' || e.status === filterStatus;
-    const searchOk = search === '' || `${e.first_name} ${e.last_name} ${e.wasp_id}`.toLowerCase().includes(search.toLowerCase());
-    return deptOk && statOk && searchOk;
-  });
-
-  // Shift tiles — clocked in by dept
-  const shiftTiles = depts.map(d => ({
-    dept:  d.name,
-    in:    d.active,
-    total: d.count,
-  }));
-
-  // File upload handler
-  const handleFile = useCallback((file) => {
-    if (!file || !file.name.endsWith('.csv')) {
-      setImportMsg({ type:'error', text: 'Please select a .csv file from Wasp payroll.' });
-      return;
-    }
-    setImporting(true);
-    setImportMsg(null);
-    // Simulate upload → in production: POST to Supabase Storage then trigger Edge Function
-    setTimeout(() => {
-      setImporting(false);
-      setImportMsg({ type:'success', text: `Imported ${file.name} — 8 employees, 263.5 hrs processed.` });
-    }, 2200);
-  }, []);
-
-  const onDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    handleFile(file);
-  };
+function Gauge({ value }) {
+  const angle = -90 + (value / 100) * 180;
+  const radians = (Math.PI / 180) * angle;
+  const x = 120 + 88 * Math.cos(radians);
+  const y = 120 + 88 * Math.sin(radians);
 
   return (
-    <div style={{ display:'flex', flex:1 }}>
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-logo">OpsMaster</div>
-        <nav className="sidebar-nav">
-          {['Master Dash','Order/Production','Energy Dashboard','Shipping','Employee Tracking','Cost Structure'].map(item => (
-            <div key={item} className={`nav-item ${item === 'Employee Tracking' ? 'active' : ''}`}>{item}</div>
-          ))}
-        </nav>
-      </aside>
-
-      {/* Main */}
-      <div className="main">
-        <div className="topbar">
-          <div>
-            <div className="page-title">Employee Tracking</div>
-            <div className="page-sub">Live headcount, shifts, and Wasp payroll data</div>
-          </div>
-          <div className="topbar-actions">
-            <button className="btn" onClick={() => fileRef.current.click()}>
-              ↑ Import CSV
-            </button>
-            <button className="btn btn-primary">Export</button>
-            <input ref={fileRef} type="file" accept=".csv" style={{display:'none'}}
-              onChange={e => handleFile(e.target.files[0])}/>
-          </div>
-        </div>
-
-        <div className="content">
-
-          {/* KPI row */}
-          <div className="kpi-grid">
-            <div className="kpi-card blue">
-              <div className="kpi-icon blue">👥</div>
-              <div className="kpi-label">Active employees</div>
-              <div className="kpi-value">{active}</div>
-              <div className="kpi-sub">Current headcount</div>
-            </div>
-            <div className="kpi-card teal">
-              <div className="kpi-icon teal">✓</div>
-              <div className="kpi-label">Clocked in now</div>
-              <div className="kpi-value">{clockedIn}</div>
-              <div className="kpi-sub">On the floor today</div>
-            </div>
-            <div className="kpi-card amber">
-              <div className="kpi-icon amber">⏱</div>
-              <div className="kpi-label">Hours this week</div>
-              <div className="kpi-value">{totalHrsWk.toFixed(0)}</div>
-              <div className="kpi-sub">Across all departments</div>
-            </div>
-            <div className="kpi-card purple">
-              <div className="kpi-icon purple">📋</div>
-              <div className="kpi-label">On leave</div>
-              <div className="kpi-value">{employees.filter(e=>e.status==='on_leave').length}</div>
-              <div className="kpi-sub">Currently away</div>
-            </div>
-          </div>
-
-          {/* Middle row */}
-          <div className="two-col">
-
-            {/* Left: headcount by dept + bar chart */}
-            <div className="card">
-              <div className="card-header">
-                <span className="card-title">Headcount by department</span>
-              </div>
-              <div className="card-body">
-                <HeadcountChart depts={depts}/>
-                <div style={{marginTop:16}}>
-                  {depts.map(d => (
-                    <div className="dept-row" key={d.name}>
-                      <div className="dept-dot" style={{background: DEPT_COLORS[d.name]}}/>
-                      <div className="dept-name">{d.name}</div>
-                      <div className="dept-bar-wrap">
-                        <div className="dept-bar-fill" style={{width: `${(d.count/maxCount)*100}%`, background: DEPT_COLORS[d.name]}}/>
-                      </div>
-                      <div className="dept-count">{d.count}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Right: floor presence + shift tiles + import */}
-            <div style={{display:'flex', flexDirection:'column', gap:14}}>
-
-              {/* Floor presence donut */}
-              <div className="card">
-                <div className="card-header"><span className="card-title">Factory floor presence</span></div>
-                <div className="card-body" style={{display:'flex', alignItems:'center', gap:20}}>
-                  <DonutChart pct={floorPct} color="#388bfd" label="present"/>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:12, color:'var(--text-2)', marginBottom:8}}>Shift distribution</div>
-                    {['SHIFT A','SHIFT B'].map(sh => {
-                      const cnt = employees.filter(e => e.shift === sh && e.is_clocked_in).length;
-                      const tot = employees.filter(e => e.shift === sh).length;
-                      return (
-                        <div key={sh} style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                          <span className={`badge ${sh==='SHIFT A'?'badge-shift-a':'badge-shift-b'}`}>{sh}</span>
-                          <div className="hours-bar" style={{flex:1}}>
-                            <div className="hours-bar-track">
-                              <div className="hours-bar-fill" style={{width: tot ? `${(cnt/tot)*100}%`:0, background: sh==='SHIFT A'?'var(--blue)':'var(--purple)'}}/>
-                            </div>
-                          </div>
-                          <span style={{fontSize:12,color:'var(--text-2)',width:28,textAlign:'right'}}>{cnt}/{tot}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Dept shift tiles */}
-              <div className="card">
-                <div className="card-header"><span className="card-title">Clocked in by dept</span></div>
-                <div className="card-body" style={{paddingTop:12}}>
-                  <div className="shift-grid">
-                    {shiftTiles.map(t => (
-                      <div className="shift-tile" key={t.dept}>
-                        <div className="shift-dept" style={{color: DEPT_COLORS[t.dept]}}>{t.dept}</div>
-                        <div className="shift-count">{t.in}</div>
-                        <div className="shift-label">of {t.total} active</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Wasp import panel */}
-              <div className="card">
-                <div className="card-header"><span className="card-title">Wasp payroll import</span></div>
-                <div className="card-body" style={{paddingTop:12}}>
-                  <div
-                    className={`import-zone ${dragOver ? 'drag-over' : ''}`}
-                    onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-                    onDragLeave={() => setDragOver(false)}
-                    onDrop={onDrop}
-                    onClick={() => fileRef.current.click()}
-                  >
-                    <div className="import-icon">📂</div>
-                    <div className="import-text">
-                      {importing ? 'Importing...' : <><span>Browse</span> or drag CSV here</>}
-                    </div>
-                    <div style={{fontSize:11, color:'var(--text-3)', marginTop:4}}>
-                      Wasp export format • Auto-maps to Supabase
-                    </div>
-                  </div>
-                  {importMsg && (
-                    <div style={{marginTop:10, padding:'8px 12px', borderRadius:6, fontSize:12,
-                      background: importMsg.type==='success' ? 'var(--teal-dim)' : 'var(--red-dim)',
-                      color: importMsg.type==='success' ? 'var(--teal)' : 'var(--red)',
-                      border: `1px solid ${importMsg.type==='success' ? 'rgba(57,211,83,0.2)' : 'rgba(248,81,73,0.2)'}`,
-                    }}>
-                      {importMsg.text}
-                    </div>
-                  )}
-                  <div className="import-history">
-                    {MOCK_IMPORTS.map(imp => (
-                      <div className="import-row" key={imp.id}>
-                        <div className="import-row-name">{imp.file_name}</div>
-                        <div className="import-row-meta">{imp.total_hours}h</div>
-                        <span className={`badge-${imp.status==='completed'?'ok':imp.status==='partial'?'warn':'fail'}`}>
-                          {imp.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Employee table */}
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">All employees</span>
-              <div className="filter-bar">
-                <input className="search-input" placeholder="Search name or ID…"
-                  value={search} onChange={e => setSearch(e.target.value)}/>
-                <select className="filter-select" value={filterDept} onChange={e => setFilterDept(e.target.value)}>
-                  <option value="All">All departments</option>
-                  {['Dyeing','Shipping','Finishing','Office','Maintenance'].map(d => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-                <select className="filter-select" value={filterStatus} onChange={e => setStatus(e.target.value)}>
-                  <option value="All">All statuses</option>
-                  <option value="active">Active</option>
-                  <option value="on_leave">On leave</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
-            </div>
-            <div style={{overflowX:'auto'}}>
-              <table className="emp-table">
-                <thead>
-                  <tr>
-                    <th>Employee</th>
-                    <th>Department</th>
-                    <th>Shift</th>
-                    <th>Pay rate</th>
-                    <th>Hours / week</th>
-                    <th>Status</th>
-                    <th>Floor</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((e, i) => (
-                    <tr key={e.id}>
-                      <td>
-                        <div className="emp-name-cell">
-                          <div className="avatar" style={{background: AVATAR_COLORS[i % AVATAR_COLORS.length]}}>
-                            {initials(e.first_name, e.last_name)}
-                          </div>
-                          <div>
-                            <div className="emp-name">{e.first_name} {e.last_name}</div>
-                            <div className="emp-id">{e.wasp_id} · {e.job_title}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span style={{display:'flex',alignItems:'center',gap:6}}>
-                          <span style={{width:7,height:7,borderRadius:'50%',background:DEPT_COLORS[e.department],flexShrink:0,display:'inline-block'}}/>
-                          {e.department}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`badge ${e.shift==='SHIFT A'?'badge-shift-a':'badge-shift-b'}`}>{e.shift}</span>
-                      </td>
-                      <td style={{fontFamily:'var(--mono)',fontSize:12}}>${e.pay_rate.toFixed(2)}/hr</td>
-                      <td>
-                        <div className="hours-bar">
-                          <div className="hours-bar-track">
-                            <div className="hours-bar-fill" style={{width:`${Math.min((e.hours_this_week/40)*100,100)}%`}}/>
-                          </div>
-                          <span style={{fontSize:12,color:'var(--text-2)',width:36,flexShrink:0}}>{e.hours_this_week}h</span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className={`badge badge-${e.status==='active'?'active':e.status==='on_leave'?'leave':'inactive'}`}>
-                          {e.status === 'on_leave' ? 'On leave' : e.status.charAt(0).toUpperCase()+e.status.slice(1)}
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{
-                          display:'inline-block', width:8, height:8, borderRadius:'50%',
-                          background: e.is_clocked_in ? 'var(--teal)' : 'var(--text-3)',
-                          boxShadow: e.is_clocked_in ? '0 0 6px rgba(57,211,83,0.5)' : 'none',
-                        }}/>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div style={{padding:'10px 18px',fontSize:12,color:'var(--text-2)',borderTop:'1px solid var(--border)'}}>
-                {filtered.length} of {employees.length} employees
-              </div>
-            </div>
-          </div>
-
-        </div>
+    <div className="gauge-wrap">
+      <svg className="gauge-svg" viewBox="0 0 240 150" aria-label="Budget Utilization Gauge">
+        <defs>
+          <linearGradient id="budgetGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#23d18b" />
+            <stop offset="64%" stopColor="#ffcc4d" />
+            <stop offset="100%" stopColor="#ff5f6d" />
+          </linearGradient>
+        </defs>
+        <path d="M32 120 A88 88 0 0 1 208 120" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="18" strokeLinecap="round" />
+        <path d="M32 120 A88 88 0 0 1 208 120" fill="none" stroke="url(#budgetGradient)" strokeWidth="18" strokeLinecap="round" strokeDasharray="276" strokeDashoffset={276 - (276 * value) / 100} />
+        <circle cx="120" cy="120" r="8" fill="#dce8ff" />
+        <line x1="120" y1="120" x2={x} y2={y} stroke="#dce8ff" strokeWidth="6" strokeLinecap="round" />
+      </svg>
+      <div className="gauge-center">
+        <div className="gauge-value">{value}%</div>
+        <div className="gauge-label">budget_utilization placeholder</div>
       </div>
+      <div className="gauge-scale"><span>0%</span><span>70%</span><span>85%</span><span>100%</span></div>
     </div>
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+function KpiCard({ item }) {
+  return (
+    <div className={`kpi-card ${stateClass(item.state)}`}>
+      <div className="kpi-top">
+        <div className="eyebrow">{item.label}</div>
+        <div className={dotClass(item.state)} />
+      </div>
+      <div className="kpi-value">{item.value}</div>
+      <div className="kpi-foot">
+        <span>{item.detail}</span>
+        <span className={`trend ${item.direction}`}>
+          {item.direction === 'up' ? '↑' : '↓'} {item.change}
+        </span>
+      </div>
+      <div style={{ marginTop: 14, color: 'var(--muted)', fontSize: 12 }}>Placeholder: <strong style={{ color: 'var(--text)' }}>{item.placeholder}</strong></div>
+    </div>
+  );
+}
+
+function App() {
+  const [view, setView] = useState('plant');
+  const [selectedLine, setSelectedLine] = useState('Line 2');
+  const activeLine = lineData[selectedLine];
+
+  const lineMetrics = useMemo(() => {
+    const overtimeState = activeLine.overtimeHours > 10 ? 'red' : activeLine.overtimeHours >= 5 ? 'yellow' : 'green';
+    return [
+      { label: 'Overtime Hours', value: `${activeLine.overtimeHours}%`, change: activeLine.overtimeHours > 10 ? '+2.4%' : '+0.9%', direction: 'up', state: overtimeState, detail: 'threshold aware alert', placeholder: 'overtime_hours' },
+      { label: 'Active Employees', value: `${activeLine.activeEmployees}`, change: '-1.1%', direction: 'down', state: activeLine.activeEmployees < 100 ? 'yellow' : 'green', detail: 'currently clocked in', placeholder: 'employee_count' },
+      { label: 'Output / Hour', value: activeLine.outputPerHour.toLocaleString(), change: activeLine.outputPerHour < 1000 ? '-3.8%' : '+1.5%', direction: activeLine.outputPerHour < 1000 ? 'down' : 'up', state: activeLine.outputPerHour < 1000 ? 'red' : 'green', detail: 'production_output', placeholder: 'production_output' },
+      { label: 'Labor Cost / Unit', value: `$${activeLine.laborCostPerUnit.toFixed(2)}`, change: activeLine.laborCostPerUnit > 3.3 ? '+4.1%' : '+1.2%', direction: 'up', state: activeLine.laborCostPerUnit > 3.3 ? 'red' : activeLine.laborCostPerUnit > 3 ? 'yellow' : 'green', detail: 'labor_cost_per_unit', placeholder: 'labor_cost_per_unit' },
+    ];
+  }, [activeLine]);
+
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-badge">TX</div>
+          <div>
+            <h1>Textile Ops Live</h1>
+            <p>Large-screen production floor dashboard for payroll, staffing, and output health.</p>
+          </div>
+        </div>
+
+        <div className="nav-group">
+          <div className="nav-label">Views</div>
+          <button className={`nav-button ${view === 'plant' ? 'active' : ''}`} onClick={() => setView('plant')}>Plant-Wide Dashboard</button>
+          <button className={`nav-button ${view === 'line' ? 'active' : ''}`} onClick={() => setView('line')}>Line-Level Drilldown</button>
+        </div>
+
+        <div className="nav-group">
+          <div className="nav-label">Line Selector</div>
+          {Object.keys(lineData).map((line) => (
+            <button key={line} className={`nav-button ${selectedLine === line ? 'active' : ''}`} onClick={() => { setSelectedLine(line); setView('line'); }}>
+              {line}
+            </button>
+          ))}
+        </div>
+
+        <div className="status-block">
+          <div className="status-row"><span>Current Shift</span><strong>{liveContext.shift_name}</strong></div>
+          <div className="status-row"><span>Last Updated</span><strong>{liveContext.timestamp}</strong></div>
+          <div className="status-row"><span>line_name</span><strong>{selectedLine}</strong></div>
+        </div>
+      </aside>
+
+      <main className="main">
+        <section className="hero">
+          <div>
+            <h2>{view === 'plant' ? 'Plant-Wide Operational Dashboard' : `${selectedLine} Overview`}</h2>
+            <p>
+              {view === 'plant'
+                ? 'Executive view for rapid issue detection across payroll, staffing, overtime pressure, tax withholdings, and production efficiency.'
+                : 'Supervisor drilldown for diagnosing absenteeism, overtime spikes, labor cost drift, and output bottlenecks in real time.'}
+            </p>
+          </div>
+          <div className="meta-pills">
+            <div className="meta-pill"><span>shift_name</span><strong>{liveContext.shift_name}</strong></div>
+            <div className="meta-pill"><span>timestamp</span><strong>{liveContext.timestamp}</strong></div>
+            <div className="meta-pill"><span>line_name</span><strong>{view === 'plant' ? liveContext.line_name : selectedLine}</strong></div>
+          </div>
+        </section>
+
+        {view === 'plant' ? (
+          <>
+            <section className="kpi-grid">
+              {executiveMetrics.map((item) => <KpiCard key={item.label} item={item} />)}
+            </section>
+
+            <section className="panel-grid">
+              <div className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h3 className="panel-title">Labor Costs vs Production Output</h3>
+                    <div className="panel-subtitle">Live trend comparison for production_output and labor cost over the current operating day.</div>
+                  </div>
+                  <div className="panel-tag">Real-time sync ready</div>
+                </div>
+                <ChartPanel
+                  id="plant-chart"
+                  labels={plantSeries.labels}
+                  leftLabel="Labor Costs ($K)"
+                  rightLabel="Production Output (units x100)"
+                  leftData={plantSeries.laborCosts}
+                  rightData={plantSeries.output}
+                  leftColor="#69b7ff"
+                  rightColor="#23d18b"
+                />
+              </div>
+
+              <div className="stack">
+                <div className="gauge-card">
+                  <div className="stack-header">
+                    <div>
+                      <h3 className="panel-title">Budget Utilization</h3>
+                      <div className="panel-subtitle">Green &lt;70%, yellow 70–85%, red &gt;85%.</div>
+                    </div>
+                    <div className="alert-pill yellow-bg"><span>●</span> Warning band</div>
+                  </div>
+                  <Gauge value={75} />
+                </div>
+
+                <div className="insight-card">
+                  <div className="stack-header" style={{ marginBottom: 0 }}>
+                    <div>
+                      <h3 className="panel-title">Operational Insight</h3>
+                      <div className="panel-subtitle">Short summary panel for executive action.</div>
+                    </div>
+                  </div>
+                  <div className="insight-banner">
+                    <strong>Overtime increasing in Line 2 since last shift.</strong>
+                    <div>Absentee coverage and dye changeovers are increasing labor cost per unit while output trails the daily takt target.</div>
+                  </div>
+                  <div className="insight-list">
+                    <div className="insight-item"><span>Payroll</span>Payroll run is tracking above baseline but remains inside budget guardrails.</div>
+                    <div className="insight-item"><span>Staffing</span>Employee count is stable plant-wide, with the biggest gap isolated to Line 2.</div>
+                    <div className="insight-item"><span>Tax / Compliance</span>Tax withholdings softened slightly while overtime costs continue to trend upward.</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </>
+        ) : (
+          <>
+            <section className="panel" style={{ paddingBottom: 24 }}>
+              <div className="panel-header">
+                <div>
+                  <h3 className="panel-title">Line X Overview</h3>
+                  <div className="panel-subtitle">Selector supports Line 1 / Line 2 / Line 3 for supervisor-focused diagnostics.</div>
+                </div>
+                <div className="line-toolbar">
+                  {Object.keys(lineData).map((line) => (
+                    <button key={line} className={`line-chip ${selectedLine === line ? 'active' : ''}`} onClick={() => setSelectedLine(line)}>{line}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="kpi-grid">
+                {lineMetrics.map((item) => <KpiCard key={item.label} item={item} />)}
+              </div>
+            </section>
+
+            <section className="panel-grid">
+              <div className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h3 className="panel-title">Output vs Labor Cost Trend</h3>
+                    <div className="panel-subtitle">Per-line trend chart showing output and labor cost drift across the active shift.</div>
+                  </div>
+                  <div className={`alert-pill ${pillClass(activeLine.alerts.overtime.state)}`}><span>●</span>{activeLine.alerts.overtime.text}</div>
+                </div>
+                <ChartPanel
+                  id={`line-chart-${selectedLine}`}
+                  labels={activeLine.trend.labels}
+                  leftLabel="Output / Hour"
+                  rightLabel="Labor Cost / Unit"
+                  leftData={activeLine.trend.output}
+                  rightData={activeLine.trend.laborCost}
+                  leftColor="#23d18b"
+                  rightColor="#ffcc4d"
+                  height={280}
+                />
+              </div>
+
+              <div className="stack">
+                <div className="insight-card">
+                  <div className="stack-header" style={{ marginBottom: 0 }}>
+                    <div>
+                      <h3 className="panel-title">Alert Indicators</h3>
+                      <div className="panel-subtitle">Green / yellow / red logic mirrors the plant-wide dashboard.</div>
+                    </div>
+                  </div>
+                  {Object.entries(activeLine.alerts).map(([key, value]) => (
+                    <div key={key} className="insight-item">
+                      <span>{key}</span>
+                      <div className={`alert-pill ${pillClass(value.state)}`}><span>●</span>{value.text}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="insight-card">
+                  <div className="stack-header" style={{ marginBottom: 0 }}>
+                    <div>
+                      <h3 className="panel-title">Compact Issues Panel</h3>
+                      <div className="panel-subtitle">Absenteeism, overtime spikes, and production bottlenecks for fast supervisor response.</div>
+                    </div>
+                  </div>
+                  <div className="issues-grid" style={{ gridTemplateColumns: '1fr' }}>
+                    {activeLine.issues.map((issue) => (
+                      <div key={issue.title} className="issue-item">
+                        <small>{issue.title}</small>
+                        <strong>{issue.value}</strong>
+                        <div className={`alert-pill ${pillClass(issue.state)}`}><span>●</span>{issue.state.toUpperCase()}</div>
+                        <p>{issue.note}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+          </>
+        )}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
