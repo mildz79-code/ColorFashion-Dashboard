@@ -213,6 +213,10 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font);font-size:13px
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.251.068a.5.5 0 01.227.58L9.677 6.5H13a.5.5 0 01.364.843l-8 8.5a.5.5 0 01-.842-.49L6.323 9.5H3a.5.5 0 01-.364-.843l8-8.5a.5.5 0 01.615-.09z"/></svg>
       Energy Dashboard
     </div>
+    <div class="nav-item" data-screen="utility" onclick="nav('utility')">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M14 3H2a1 1 0 00-1 1v8a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1zm-1 8H3V5h10v6z"/><path d="M5 7h2v2H5zM9 7h2v2H9z"/></svg>
+      Utility Dashboard
+    </div>
     <div class="nav-item" data-screen="shipping" onclick="nav('shipping')">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 3.5A1.5 1.5 0 011.5 2h9A1.5 1.5 0 0112 3.5V5h1.02a1.5 1.5 0 011.17.563l1.481 1.85a1.5 1.5 0 01.329.938V10.5a1.5 1.5 0 01-1.5 1.5H14a2 2 0 11-4 0H5a2 2 0 11-3.998-.085A1.5 1.5 0 010 10.5v-7z"/></svg>
       Shipping
@@ -611,6 +615,119 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font);font-size:13px
   </div>
 </div>
 
+
+<!-- ─────────────── UTILITY DASHBOARD ─────────────── -->
+<div class="screen" id="screen-utility">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="page-title">Utility Usage Dashboard</div>
+      <div class="page-sub">Real-time utilities monitoring for Anaheim Plant</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-sm" style="border-color:var(--blue);color:var(--blue)">Solid</button>
+      <button class="btn btn-sm">Outline</button>
+      <button class="btn btn-sm" style="border-color:var(--red);color:var(--red)">Danger</button>
+      <button class="btn btn-sm">Transparent</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="kpi-grid-3">
+      <div class="kpi blue" style="padding-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div class="kpi-icon blue" style="position:static">◈</div>
+          <span class="trend trend-up">+5.2%</span>
+        </div>
+        <div class="kpi-label">Electricity Usage</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin:4px 0">
+          <span style="font-size:22px;font-weight:600" id="kpi-utility-electricity">450</span>
+          <span style="color:var(--t2);font-size:12px">kWh</span>
+        </div>
+        <div class="prog-wrap"><div class="prog-fill" style="width:72%;background:var(--blue)"></div></div>
+        <div style="font-size:11px;color:var(--t2);text-align:right;margin-top:3px">72%</div>
+        <div style="font-size:11px;color:var(--t2);margin-top:4px">Peak Demand: 1800 kW</div>
+      </div>
+      <div class="kpi teal" style="padding-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div class="kpi-icon teal" style="position:static">◈</div>
+          <span class="trend trend-dn">-2.1%</span>
+        </div>
+        <div class="kpi-label">Water Consumption</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin:4px 0">
+          <span style="font-size:22px;font-weight:600" id="kpi-utility-water">1,200</span>
+          <span style="color:var(--t2);font-size:12px">gal</span>
+        </div>
+        <div class="prog-wrap"><div class="prog-fill" style="width:45%;background:var(--teal)"></div></div>
+        <div style="font-size:11px;color:var(--t2);text-align:right;margin-top:3px">45%</div>
+      </div>
+      <div class="kpi amber" style="padding-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div class="kpi-icon amber" style="position:static">◈</div>
+          <span class="trend trend-up">+0.8%</span>
+        </div>
+        <div class="kpi-label">Gas Flow</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin:4px 0">
+          <span style="font-size:22px;font-weight:600" id="kpi-utility-gas">320</span>
+          <span style="color:var(--t2);font-size:12px">CCF</span>
+        </div>
+        <div class="prog-wrap"><div class="prog-fill" style="width:58%;background:var(--amber)"></div></div>
+        <div style="font-size:11px;color:var(--t2);text-align:right;margin-top:3px">58%</div>
+      </div>
+    </div>
+
+    <div class="card" style="background:var(--card2)">
+      <div class="card-body" style="padding:10px 14px;display:flex;align-items:center;gap:10px">
+        <span style="color:var(--blue);font-size:14px">ℹ</span>
+        <div>
+          <div style="font-size:12px;font-weight:500;color:var(--t1)">Info</div>
+          <div style="font-size:11.5px;color:var(--t2)">System operating normally. Next scheduled maintenance: Friday 18:00.</div>
+        </div>
+        <button class="btn btn-sm" style="margin-left:auto">Action</button>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-hd">
+          <div><div class="card-title" style="font-size:14px">Utility Consumption Comparison</div></div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrap" style="height:220px"><canvas id="utilityChartAlt"></canvas></div>
+          <div style="margin-top:14px">
+            <div style="font-size:12px;font-weight:500;color:var(--t2);margin-bottom:8px">Import Powerlink CSV from Anaheim</div>
+            <div class="import-zone">
+              <div style="font-size:18px;opacity:.5;margin-bottom:6px">📂</div>
+              <div style="font-size:12px;color:var(--t2)">Select or drag and drop CSV</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hd"><span class="card-title">Cost Analysis</span></div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+            <div><div style="font-size:11.5px;font-weight:500;color:var(--t2);margin-bottom:2px">Electricity Cost</div><div style="font-size:15px;font-weight:600;font-family:var(--mono)">$1,450.00</div></div>
+            <div class="divider"></div>
+            <div><div style="font-size:11.5px;font-weight:500;color:var(--t2);margin-bottom:2px">Water Cost</div><div style="font-size:15px;font-weight:600;font-family:var(--mono)">$890.50</div></div>
+            <div class="divider"></div>
+            <div><div style="font-size:11.5px;font-weight:500;color:var(--t2);margin-bottom:2px">Gas Cost</div><div style="font-size:15px;font-weight:600;font-family:var(--mono)">$640.25</div></div>
+            <div class="divider"></div>
+            <div><div style="font-size:11.5px;font-weight:500;color:var(--t2);margin-bottom:2px">Total Est.</div><div style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--t1)">$2,980.75</div></div>
+          </div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">Efficiency Goals</div>
+            <div style="font-size:12px;color:var(--t2);line-height:1.8">
+              Reduction Target: <span style="color:var(--t1)">85%</span><br>
+              Status: <span style="color:var(--teal)">On Track</span><br>
+              Saving approx. <span style="color:var(--teal)">$450/mo</span>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center;display:flex">Download Detailed Report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ─────────────── SHIPPING ─────────────── -->
 <div class="screen" id="screen-shipping">
   <div class="topbar">
@@ -971,6 +1088,29 @@ function buildCharts(screen) {
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: true, labels: { color: CHART_DEFAULTS.color.tick, font: { size: 11 }, boxWidth: 10 } }, tooltip: { ...CHART_DEFAULTS.tooltip } },
+        scales: {
+          x: { grid: { color: CHART_DEFAULTS.color.grid }, ticks: { color: CHART_DEFAULTS.color.tick, font: { size: 11 } } },
+          y: { grid: { color: CHART_DEFAULTS.color.grid }, ticks: { color: CHART_DEFAULTS.color.tick, font: { size: 11 } }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  // ── UTILITY ──
+  if (screen === 'utility') {
+    mkChart('utilityChartAlt', {
+      type: 'bar',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [
+          { label: 'Electricity', data: [40, 55, 70, 45, 64, 30, 25], backgroundColor: 'rgba(255,198,0,.9)', borderRadius: 3 },
+          { label: 'Water',       data: [60, 45, 35, 74, 50, 25, 20], backgroundColor: 'rgba(56,139,253,.9)', borderRadius: 3 },
+          { label: 'Gas',         data: [30, 40, 50, 35, 60, 20, 15], backgroundColor: 'rgba(255,153,0,.9)', borderRadius: 3 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { ...CHART_DEFAULTS.tooltip } },
         scales: {
           x: { grid: { color: CHART_DEFAULTS.color.grid }, ticks: { color: CHART_DEFAULTS.color.tick, font: { size: 11 } } },
           y: { grid: { color: CHART_DEFAULTS.color.grid }, ticks: { color: CHART_DEFAULTS.color.tick, font: { size: 11 } }, beginAtZero: true }
