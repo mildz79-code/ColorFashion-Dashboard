@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpsMaster — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --blue:      #388bfd;
+      --blue-glow: #388bfd33;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --border:    #21262d;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .splash {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      text-align: center;
+      padding: 2rem;
+      animation: fadeIn 0.6s ease;
+    }
+
+    /* ── Logo ── */
+    .logo-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-ring {
+      position: absolute;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: var(--blue-glow);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .logo-icon {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      background: var(--surface);
+      border: 2px solid var(--blue);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 24px var(--blue-glow);
+    }
+
+    .logo-icon svg {
+      width: 38px;
+      height: 38px;
+      fill: var(--blue);
+    }
+
+    /* ── Title ── */
+    .title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--text) 60%, var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: var(--muted);
+      font-weight: 400;
+      margin-top: -1.5rem;
+    }
+
+    /* ── Module pills ── */
+    .modules {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      max-width: 480px;
+    }
+
+    .module-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      transition: border-color 0.3s, color 0.3s;
+    }
+
+    .module-pill:hover {
+      border-color: var(--blue);
+      color: var(--text);
+    }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      width: 240px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 3px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--blue);
+      border-radius: 999px;
+      animation: fillBar 1.4s ease forwards;
+    }
+
+    .progress-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ── Button ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--blue);
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 0.65rem 1.6rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.15s;
+      box-shadow: 0 4px 16px var(--blue-glow);
+      opacity: 0;
+      animation: fadeInBtn 0.4s ease 1.3s forwards;
+    }
+
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn svg { width: 16px; height: 16px; fill: #fff; }
+
+    /* ── Animations ── */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1);    opacity: 0.6; }
+      50%       { transform: scale(1.35); opacity: 0.2; }
+    }
+
+    @keyframes fillBar {
+      0%   { width: 0%; }
+      80%  { width: 95%; }
+      100% { width: 100%; }
+    }
+
+    @keyframes fadeInBtn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Footer ── */
+    .footer {
+      position: fixed;
+      bottom: 1.5rem;
+      font-size: 0.73rem;
+      color: var(--border);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="splash">
+
+    <div class="logo-wrap">
+      <div class="logo-ring"></div>
+      <div class="logo-icon">
+        <!-- Grid / dashboard icon -->
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <div>
+      <div class="title">OpsMaster</div>
+      <div class="subtitle">Operations Intelligence Platform</div>
+    </div>
+
+    <div class="modules">
+      <span class="module-pill">Master Dash</span>
+      <span class="module-pill">Order / Production</span>
+      <span class="module-pill">Energy Dashboard</span>
+      <span class="module-pill">Shipping</span>
+      <span class="module-pill">Employee Tracking</span>
+      <span class="module-pill">Cost Structure</span>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+      <div class="progress-label">Loading dashboard&hellip;</div>
+    </div>
+
+    <a class="btn" href="opsmaster.html">
+      <svg viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 12h14" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Enter Dashboard
+    </a>
+
+  </div>
+
+  <div class="footer">OpsMaster &mdash; ColorFashion</div>
+
+  <script>
+    // Auto-redirect after 1.5 s
+    setTimeout(function () {
+      window.location.href = 'opsmaster.html';
+    }, 1500);
+  </script>
+</body>
+</html>

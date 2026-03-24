@@ -13,7 +13,7 @@
  */
 
 // ── CONFIG — fill in your values ─────────────────────────────────────────────
-const SUPABASE_URL  = 'https://mtxokbgpmkggolyfeehz.supabase.co';
+const SUPABASE_URL  = 'https://jswowdnamlitzizmyytv.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzd293ZG5hbWxpdHppem15eXR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzMDg2MjYsImV4cCI6MjA4OTg4NDYyNn0.pAj8E-SdEVd0IycXFFp0QcnEx4csrMGFOgL7sGJR9Eg'; // Settings > API > anon public
 
 // ── Init client ───────────────────────────────────────────────────────────────
