@@ -843,11 +843,14 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font);font-size:13px
 <script>
 // ── Navigation ──────────────────────────────────────────────────────────────
 function nav(screen) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const screenEl = document.getElementById('screen-' + screen);
   const navEl = document.querySelector('[data-screen="' + screen + '"]');
-  if (!screenEl || !navEl) return;
+  if (!screenEl || !navEl) {
+    console.warn('[OpsMaster] Unknown screen requested:', screen);
+    return;
+  }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   screenEl.classList.add('active');
   navEl.classList.add('active');
   // Reset scroll position on the content area
@@ -1094,6 +1097,7 @@ function renderEmpTable() {
 
 // ── Init: build master dash charts on load ──────────────────────────────────
 window.addEventListener('load', () => {
+  if (!document.querySelector('.screen.active')) nav('master');
   buildCharts('master');
   // Load live Supabase data after charts are initialized
   if (window.OPS) {
