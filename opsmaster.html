@@ -845,8 +845,14 @@ body{background:var(--bg);color:var(--t1);font-family:var(--font);font-size:13px
 function nav(screen) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('screen-' + screen).classList.add('active');
-  document.querySelector('[data-screen="' + screen + '"]').classList.add('active');
+  const screenEl = document.getElementById('screen-' + screen);
+  const navEl = document.querySelector('[data-screen="' + screen + '"]');
+  if (!screenEl || !navEl) return;
+  screenEl.classList.add('active');
+  navEl.classList.add('active');
+  // Reset scroll position on the content area
+  const contentEl = screenEl.querySelector('.content');
+  if (contentEl) contentEl.scrollTop = 0;
   if (!charts[screen]) buildCharts(screen);
   // Load live data after charts are ready
   if (window.OPS) setTimeout(() => window.OPS.loadScreen(screen), 100);
