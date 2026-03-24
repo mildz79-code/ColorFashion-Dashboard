@@ -1,125 +1,122 @@
-export const dynamic = 'force-dynamic';
+const metricCards = [
+  { title: "Today's Order", value: '7,552.8 lbs', sub: 'For today' },
+  { title: 'Yesterday Production Volume', value: '7,552.8 lbs', sub: 'As of yesterday' },
+  { title: 'Total MTD Volume', value: '7,552.8 lbs', sub: 'Month to date' },
+];
 
-import { supabase, DeptHeadcount, PayrollRun } from '@/lib/supabase';
-import StatCard from '@/components/StatCard';
-import Link from 'next/link';
+const recentOrders = [
+  {
+    id: '#ORD-#ORD-2852',
+    customer: 'RK - Robert King',
+    product: 'Gasket Set B-2',
+    weight: '240',
+    status: 'On Hold',
+    statusColor: 'bg-sky-500/20 text-sky-300 border border-sky-500/40',
+  },
+  {
+    id: '#ORD-#ORD-2851',
+    customer: 'TC - TechCorp Inc.',
+    product: 'Assembly Sensor S9',
+    weight: '890',
+    status: 'Shipped',
+    statusColor: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40',
+  },
+  {
+    id: '#ORD-#ORD-2850',
+    customer: 'SM - Sarah Miller',
+    product: 'Hydraulic Pump V4',
+    weight: '4,850',
+    status: 'Processing',
+    statusColor: 'bg-teal-500/20 text-teal-300 border border-teal-500/40',
+  },
+];
 
-async function getDashboardData() {
-  const [empResult, deptResult, payrollResult, todayResult] = await Promise.all([
-    supabase
-      .from('employees')
-      .select('id, status', { count: 'exact' }),
-    supabase
-      .from('dept_headcount')
-      .select('*')
-      .limit(6),
-    supabase
-      .from('payroll_runs')
-      .select('*')
-      .order('imported_at', { ascending: false })
-      .limit(5),
-    supabase
-      .from('today_shifts')
-      .select('shift_id', { count: 'exact' }),
-  ]);
+const bottomStats = [
+  { title: 'Total Revenue', value: '$128,450', sub: 'For current period' },
+  { title: 'Order Count', value: '1,240 orders', sub: 'Total orders' },
+  { title: 'Avg. Order Value', value: '$103.50', sub: 'This month' },
+];
 
-  const employees = empResult.data ?? [];
-  const active = employees.filter((e) => e.status === 'active').length;
-  const onLeave = employees.filter((e) => e.status === 'on_leave').length;
-  const inactive = employees.filter((e) => e.status === 'inactive').length;
-
-  return {
-    total: empResult.count ?? 0,
-    active,
-    onLeave,
-    inactive,
-    departments: (deptResult.data ?? []) as DeptHeadcount[],
-    recentPayroll: (payrollResult.data ?? []) as PayrollRun[],
-    todayShiftCount: todayResult.count ?? 0,
-  };
-}
-
-const statusColor: Record<string, string> = {
-  completed: 'bg-green-100 text-green-800',
-  partial: 'bg-yellow-100 text-yellow-800',
-  processing: 'bg-blue-100 text-blue-800',
-  failed: 'bg-red-100 text-red-800',
-};
-
-export default async function DashboardPage() {
-  const data = await getDashboardData();
-
+export default function DashboardPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Dashboard</h1>
-      <p className="text-sm text-gray-500 mb-6">Employee tracking overview</p>
+    <div className="min-h-screen bg-[#08101b] text-slate-100 p-6 lg:p-8">
+      <section className="rounded-xl border border-slate-700/60 bg-[#132133] px-5 py-4 mb-4">
+        <h1 className="text-5xl font-bold tracking-tight">Current Orders</h1>
+        <p className="text-slate-300 mt-2 text-lg">Real-time overview of business fulfillment and revenue performance.</p>
+      </section>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Employees" value={data.total} />
-        <StatCard label="Active" value={data.active} color="bg-green-50" />
-        <StatCard label="On Leave" value={data.onLeave} color="bg-yellow-50" />
-        <StatCard label="Today's Shifts" value={data.todayShiftCount} />
-      </div>
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        {metricCards.map((card) => (
+          <article key={card.title} className="rounded-xl border border-slate-700/60 bg-[#132133] p-5">
+            <p className="text-slate-300 text-xl font-semibold">{card.title}</p>
+            <p className="text-5xl font-bold mt-1">{card.value}</p>
+            <p className="text-slate-400 text-xl mt-1">{card.sub}</p>
+          </article>
+        ))}
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Department Headcount */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-800">Department Headcount</h2>
-            <Link href="/employees" className="text-xs text-indigo-600 hover:underline">View all →</Link>
-          </div>
-          {data.departments.length === 0 ? (
-            <p className="text-sm text-gray-400">No department data yet.</p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-500 text-xs uppercase border-b">
-                  <th className="pb-2">Department</th>
-                  <th className="pb-2 text-right">Headcount</th>
-                  <th className="pb-2 text-right">Avg Pay Rate</th>
+      <section className="rounded-xl border border-slate-700/60 bg-[#132133] p-5 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-5xl font-bold tracking-tight">Recent Order Details</h2>
+          <button className="rounded-full bg-blue-600 px-6 py-2 text-xl font-semibold text-white hover:bg-blue-500">
+            View All Orders
+          </button>
+        </div>
+
+        <div className="overflow-x-auto rounded-lg border border-slate-700/60">
+          <table className="w-full text-left text-xl">
+            <thead className="bg-[#162638] text-slate-300">
+              <tr>
+                <th className="px-4 py-3">Order ID ↓</th>
+                <th className="px-4 py-3">Customer</th>
+                <th className="px-4 py-3">Product</th>
+                <th className="px-4 py-3 text-right">Weight (lbs)</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentOrders.map((order) => (
+                <tr key={order.id} className="border-t border-slate-700/60">
+                  <td className="px-4 py-4 font-semibold text-slate-200">{order.id}</td>
+                  <td className="px-4 py-4 text-slate-300">{order.customer}</td>
+                  <td className="px-4 py-4 text-slate-200">{order.product}</td>
+                  <td className="px-4 py-4 text-right font-semibold">{order.weight}</td>
+                  <td className="px-4 py-4">
+                    <span className={`rounded-full px-3 py-1 text-base font-semibold ${order.statusColor}`}>{order.status}</span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {data.departments.map((d) => (
-                  <tr key={d.department} className="border-b last:border-0 hover:bg-gray-50">
-                    <td className="py-2 font-medium">{d.department ?? '—'}</td>
-                    <td className="py-2 text-right">{d.headcount}</td>
-                    <td className="py-2 text-right">${Number(d.avg_pay_rate).toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {/* Recent Payroll Runs */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-800">Recent Payroll Runs</h2>
-            <Link href="/payroll" className="text-xs text-indigo-600 hover:underline">View all →</Link>
-          </div>
-          {data.recentPayroll.length === 0 ? (
-            <p className="text-sm text-gray-400">No payroll runs yet. Drop a CSV into the importer folder.</p>
-          ) : (
-            <ul className="space-y-3">
-              {data.recentPayroll.map((run) => (
-                <li key={run.id} className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{run.file_name}</p>
-                    <p className="text-xs text-gray-500">
-                      {run.pay_period_start} – {run.pay_period_end} &middot; {run.total_employees} emp &middot; ${Number(run.total_gross_pay).toLocaleString()}
-                    </p>
-                  </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${statusColor[run.status] ?? 'bg-gray-100 text-gray-700'}`}>
-                    {run.status}
-                  </span>
-                </li>
               ))}
-            </ul>
-          )}
+            </tbody>
+          </table>
         </div>
-      </div>
+      </section>
+
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        {bottomStats.map((stat) => (
+          <article key={stat.title} className="rounded-xl border border-slate-700/60 bg-[#132133] p-5">
+            <p className="text-slate-300 text-2xl font-semibold">{stat.title}</p>
+            <p className="text-5xl font-bold mt-1">{stat.value}</p>
+            <p className="text-slate-400 text-xl mt-1">{stat.sub}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="rounded-xl border border-slate-700/60 bg-[#132133] p-5">
+        <h2 className="text-5xl font-bold tracking-tight">Sales Trends</h2>
+        <p className="text-slate-300 text-lg mt-2">Net revenue growth over the last 7 days</p>
+        <div className="mt-5 h-48 rounded-lg border border-slate-700/60 bg-[#0d1a2a] p-4 relative overflow-hidden">
+          <div className="absolute inset-x-0 top-1/3 border-t border-slate-600/50" />
+          <div className="absolute inset-x-0 top-2/3 border-t border-slate-600/50" />
+          <svg viewBox="0 0 600 160" className="h-full w-full">
+            <polyline
+              fill="none"
+              stroke="#1e88ff"
+              strokeWidth="3"
+              points="0,130 120,100 220,110 340,85 460,60 600,30"
+            />
+          </svg>
+        </div>
+      </section>
     </div>
   );
 }
