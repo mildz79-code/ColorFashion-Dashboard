@@ -1,0 +1,4 @@
+node_modules/
+opsmaster-employee/importer/node_modules/
+.env
+opsmaster-employee/importer/.env

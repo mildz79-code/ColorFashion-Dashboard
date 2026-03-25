@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OpsMaster — Textile Operations Dashboard</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #071426;
+    --bg-alt: #0c1d36;
+    --panel: rgba(12, 29, 54, 0.92);
+    --panel-2: rgba(18, 40, 70, 0.96);
+    --border: rgba(143, 177, 222, 0.16);
+    --border-strong: rgba(143, 177, 222, 0.28);
+    --text: #f5f8ff;
+    --muted: #9fb3cf;
+    --green: #23d18b;
+    --yellow: #ffcc4d;
+    --red: #ff5f6d;
+    --cyan: #69b7ff;
+    --blue: #3d7eff;
+    --shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+    --radius: 22px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: radial-gradient(circle at top left, #123761 0%, var(--bg) 38%, #04101f 100%); color: var(--text); font-family: Inter, sans-serif; }
+  body { min-height: 100vh; }
+
+  .app-shell {
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 24px;
+    min-height: 100vh;
+  }
+
+  .sidebar, .panel, .kpi-card, .issue-item, .insight-card, .gauge-card {
+    backdrop-filter: blur(14px);
+    box-shadow: var(--shadow);
+  }
+
+  .sidebar {
+    background: rgba(7, 20, 38, 0.92);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .brand-badge {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, rgba(61,126,255,0.25), rgba(35,209,139,0.25));
+    color: white;
+    font-size: 22px;
+    font-weight: 800;
+  }
+
+  .brand h1 { margin: 0; font-size: 20px; line-height: 1.1; }
+  .brand p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+  .nav-group { display: flex; flex-direction: column; gap: 10px; }
+  .nav-label { color: var(--muted); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+
+  .nav-button {
+    border: 1px solid transparent;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    padding: 14px 16px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s ease;
+  }
+
+  .nav-button:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+  .nav-button.active { background: linear-gradient(135deg, rgba(61,126,255,0.28), rgba(105,183,255,0.18)); border-color: rgba(105,183,255,0.4); }
+
+  .status-block {
+    margin-top: auto;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 16px;
+    display: grid;
+    gap: 10px;
+  }
+
+  .status-row { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; }
+  .status-row strong { color: var(--text); font-size: 13px; }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+  }
+
+  .hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+  }
+
+  .hero h2 { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.03em; }
+  .hero p { margin: 8px 0 0; color: var(--muted); font-size: 15px; max-width: 720px; }
+
+  .meta-pills { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
+  .meta-pill {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 12px 16px;
+    min-width: 150px;
+  }
+  .meta-pill span { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; }
+  .meta-pill strong { font-size: 16px; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+
+  .kpi-card {
+    position: relative;
+    background: linear-gradient(180deg, rgba(14,34,61,0.98), rgba(10,24,46,0.96));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    overflow: hidden;
+    min-height: 170px;
+  }
+
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    inset: auto -10% -42% -10%;
+    height: 60%;
+    background: radial-gradient(circle, rgba(255,255,255,0.16), transparent 64%);
+    opacity: 0.2;
+    pointer-events: none;
+  }
+
+  .severity-green { box-shadow: var(--shadow), inset 0 0 0 1px rgba(35,209,139,0.12); }
+  .severity-yellow { box-shadow: var(--shadow), inset 0 0 0 1px rgba(255,204,77,0.18); }
+  .severity-red { box-shadow: var(--shadow), 0 0 24px rgba(255,95,109,0.26), inset 0 0 0 1px rgba(255,95,109,0.22); }
+
+  .kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .eyebrow { color: var(--muted); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .status-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    box-shadow: 0 0 14px currentColor;
+  }
+  .green { color: var(--green); background: var(--green); }
+  .yellow { color: var(--yellow); background: var(--yellow); }
+  .red { color: var(--red); background: var(--red); }
+
+  .kpi-value { margin: 16px 0 10px; font-size: clamp(34px, 4vw, 58px); font-weight: 800; letter-spacing: -0.06em; line-height: 0.95; }
+  .kpi-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; }
+  .trend { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 999px; font-weight: 700; }
+  .trend.up { background: rgba(35,209,139,0.14); color: #90f1c6; }
+  .trend.down { background: rgba(255,95,109,0.16); color: #ff9ba4; }
+
+  .panel-grid { display: grid; grid-template-columns: minmax(0, 2fr) 360px; gap: 18px; }
+  .panel, .gauge-card, .insight-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    padding: 20px;
+    min-width: 0;
+  }
+
+  .panel-header, .stack-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
+  .panel-title { font-size: 20px; font-weight: 700; margin: 0; }
+  .panel-subtitle { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .panel-tag {
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .chart-shell { position: relative; height: 330px; }
+  .line-chart-small { position: relative; height: 280px; }
+
+  .stack { display: grid; gap: 18px; }
+
+  .gauge-wrap { display: grid; place-items: center; padding: 4px 0 2px; }
+  .gauge-svg { width: 100%; max-width: 240px; overflow: visible; }
+  .gauge-center { text-align: center; margin-top: -18px; }
+  .gauge-value { font-size: 46px; font-weight: 800; letter-spacing: -0.06em; }
+  .gauge-label { color: var(--muted); font-size: 13px; }
+  .gauge-scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-top: 12px; }
+
+  .insight-card { display: grid; gap: 14px; }
+  .insight-banner {
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(255,95,109,0.2), rgba(255,204,77,0.12));
+    border: 1px solid rgba(255,95,109,0.18);
+    padding: 16px;
+  }
+  .insight-banner strong { display: block; font-size: 18px; margin-bottom: 6px; }
+  .insight-list { display: grid; gap: 12px; }
+  .insight-item {
+    border-radius: 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    padding: 14px;
+  }
+  .insight-item span { color: var(--muted); font-size: 12px; display: block; margin-bottom: 5px; }
+
+  .line-toolbar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .line-chip {
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: 0.2s ease;
+  }
+  .line-chip.active { background: linear-gradient(135deg, rgba(61,126,255,0.32), rgba(35,209,139,0.16)); border-color: rgba(105,183,255,0.34); }
+
+  .issues-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .issue-item {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+    display: grid;
+    gap: 10px;
+  }
+  .issue-item small { color: var(--muted); text-transform: uppercase; letter-spacing: 0.14em; font-size: 11px; }
+  .issue-item strong { font-size: 22px; }
+  .issue-item p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+  .alert-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 7px 12px;
+    width: fit-content;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .alert-pill.green-bg { background: rgba(35,209,139,0.14); color: #92efc5; }
+  .alert-pill.yellow-bg { background: rgba(255,204,77,0.16); color: #ffe39a; }
+  .alert-pill.red-bg { background: rgba(255,95,109,0.16); color: #ffb0b7; }
+
+  @media (max-width: 1400px) {
+    .app-shell { grid-template-columns: 1fr; }
+    .sidebar { order: 2; }
+    .panel-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 1100px) {
+    .kpi-grid, .issues-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hero { flex-direction: column; }
+    .meta-pills { justify-content: flex-start; }
+  }
+
+  @media (max-width: 720px) {
+    .app-shell { padding: 14px; }
+    .kpi-grid, .issues-grid { grid-template-columns: 1fr; }
+    .meta-pill { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useEffect, useMemo, useRef, useState } = React;
+
+const liveContext = {
+  timestamp: '2026-03-23 14:32 UTC',
+  shift_name: 'Shift B',
+  line_name: 'Line 2',
+};
+
+const executiveMetrics = [
+  {
+    label: 'Total Payroll',
+    value: '$184.2K',
+    change: '+4.8%',
+    direction: 'up',
+    state: 'green',
+    detail: 'vs. previous shift cycle',
+    placeholder: 'payroll_totals',
+  },
+  {
+    label: 'Overtime Hours',
+    value: '11.6%',
+    change: '+2.1%',
+    direction: 'up',
+    state: 'red',
+    detail: 'overtime_hours / shift hours',
+    placeholder: 'overtime_hours',
+  },
+  {
+    label: 'Employee Count',
+    value: '428',
+    change: '+1.3%',
+    direction: 'up',
+    state: 'green',
+    detail: 'active operators on floor',
+    placeholder: 'employee_count',
+  },
+  {
+    label: 'Tax Withholdings',
+    value: '$41.9K',
+    change: '-0.6%',
+    direction: 'down',
+    state: 'yellow',
+    detail: 'current payroll run',
+    placeholder: 'tax_withholdings',
+  },
+];
+
+const plantSeries = {
+  labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00'],
+  laborCosts: [82, 88, 91, 96, 101, 107, 112],
+  output: [72, 79, 83, 90, 94, 102, 108],
+};
+
+const lineData = {
+  'Line 1': {
+    overtimeHours: 3.8,
+    activeEmployees: 108,
+    outputPerHour: 1260,
+    laborCostPerUnit: 2.94,
+    alerts: {
+      overtime: { state: 'green', text: 'Normal load' },
+      staffing: { state: 'green', text: 'Crew fully staffed' },
+      throughput: { state: 'yellow', text: 'Speed variation in finishing' },
+    },
+    issues: [
+      { title: 'Absenteeism', value: '2 operators', note: 'Below weekly average, no escalation required.', state: 'green' },
+      { title: 'Overtime spikes', value: '3.8%', note: 'Within tolerance under the <5% threshold.', state: 'green' },
+      { title: 'Bottlenecks', value: 'Loom reset', note: 'Intermittent reset cycle adding 4 min per lot.', state: 'yellow' },
+    ],
+    trend: {
+      labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00'],
+      output: [1110, 1160, 1188, 1214, 1240, 1260],
+      laborCost: [2.84, 2.88, 2.92, 2.9, 2.93, 2.94],
+    },
+  },
+  'Line 2': {
+    overtimeHours: 11.6,
+    activeEmployees: 96,
+    outputPerHour: 980,
+    laborCostPerUnit: 3.48,
+    alerts: {
+      overtime: { state: 'red', text: 'Critical >10% threshold' },
+      staffing: { state: 'yellow', text: 'Absence cover needed' },
+      throughput: { state: 'red', text: 'Output below takt target' },
+    },
+    issues: [
+      { title: 'Absenteeism', value: '7 operators', note: 'Two dye-house technicians and five assemblers absent.', state: 'yellow' },
+      { title: 'Overtime spikes', value: '11.6%', note: 'Critical overtime has risen since previous shift.', state: 'red' },
+      { title: 'Bottlenecks', value: 'Dye changeover', note: 'Color change queue delaying dispatch by 18 minutes.', state: 'red' },
+    ],
+    trend: {
+      labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00'],
+      output: [1090, 1072, 1044, 1010, 995, 980],
+      laborCost: [3.02, 3.12, 3.19, 3.31, 3.4, 3.48],
+    },
+  },
+  'Line 3': {
+    overtimeHours: 7.2,
+    activeEmployees: 102,
+    outputPerHour: 1185,
+    laborCostPerUnit: 3.08,
+    alerts: {
+      overtime: { state: 'yellow', text: 'Watch closely' },
+      staffing: { state: 'green', text: 'Balanced labor allocation' },
+      throughput: { state: 'green', text: 'Stable throughput' },
+    },
+    issues: [
+      { title: 'Absenteeism', value: '3 operators', note: 'Backfill assigned from finishing pool.', state: 'green' },
+      { title: 'Overtime spikes', value: '7.2%', note: 'Inside warning band of 5–10% of shift hours.', state: 'yellow' },
+      { title: 'Bottlenecks', value: 'Packing queue', note: 'Minor queue detected, actioned by support crew.', state: 'yellow' },
+    ],
+    trend: {
+      labels: ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00'],
+      output: [1140, 1155, 1160, 1178, 1181, 1185],
+      laborCost: [2.96, 2.99, 3.01, 3.04, 3.07, 3.08],
+    },
+  },
+};
+
+function stateClass(state) {
+  return state === 'red' ? 'severity-red' : state === 'yellow' ? 'severity-yellow' : 'severity-green';
+}
+
+function pillClass(state) {
+  return state === 'red' ? 'red-bg' : state === 'yellow' ? 'yellow-bg' : 'green-bg';
+}
+
+function dotClass(state) {
+  return state === 'red' ? 'status-dot red' : state === 'yellow' ? 'status-dot yellow' : 'status-dot green';
+}
+
+function ChartPanel({ id, labels, leftLabel, rightLabel, leftData, rightData, leftColor, rightColor, height = 330 }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const chart = new Chart(canvasRef.current, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: leftLabel,
+            data: leftData,
+            borderColor: leftColor,
+            backgroundColor: leftColor,
+            tension: 0.35,
+            borderWidth: 4,
+            pointRadius: 0,
+            yAxisID: 'y',
+          },
+          {
+            label: rightLabel,
+            data: rightData,
+            borderColor: rightColor,
+            backgroundColor: rightColor,
+            tension: 0.35,
+            borderWidth: 4,
+            pointRadius: 0,
+            yAxisID: 'y1',
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: { color: '#dbe6f8', usePointStyle: true, boxWidth: 10, padding: 18, font: { size: 12, weight: '600' } },
+          },
+          tooltip: {
+            backgroundColor: 'rgba(7,20,38,0.96)',
+            titleColor: '#ffffff',
+            bodyColor: '#d7e6ff',
+            borderColor: 'rgba(143,177,222,0.24)',
+            borderWidth: 1,
+            padding: 12,
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: '#9fb3cf', font: { size: 12, weight: '600' } },
+            grid: { color: 'rgba(143,177,222,0.08)' },
+          },
+          y: {
+            position: 'left',
+            ticks: { color: '#9fb3cf', font: { size: 12 } },
+            grid: { color: 'rgba(143,177,222,0.08)' },
+          },
+          y1: {
+            position: 'right',
+            ticks: { color: '#9fb3cf', font: { size: 12 } },
+            grid: { drawOnChartArea: false },
+          },
+        },
+      },
+    });
+
+    return () => chart.destroy();
+  }, [labels, leftLabel, rightLabel, leftData, rightData, leftColor, rightColor, id]);
+
+  return <div className={height < 300 ? 'line-chart-small' : 'chart-shell'} style={{ height }}><canvas ref={canvasRef} /></div>;
+}
+
+function Gauge({ value }) {
+  const angle = -90 + (value / 100) * 180;
+  const radians = (Math.PI / 180) * angle;
+  const x = 120 + 88 * Math.cos(radians);
+  const y = 120 + 88 * Math.sin(radians);
+
+  return (
+    <div className="gauge-wrap">
+      <svg className="gauge-svg" viewBox="0 0 240 150" aria-label="Budget Utilization Gauge">
+        <defs>
+          <linearGradient id="budgetGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#23d18b" />
+            <stop offset="64%" stopColor="#ffcc4d" />
+            <stop offset="100%" stopColor="#ff5f6d" />
+          </linearGradient>
+        </defs>
+        <path d="M32 120 A88 88 0 0 1 208 120" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="18" strokeLinecap="round" />
+        <path d="M32 120 A88 88 0 0 1 208 120" fill="none" stroke="url(#budgetGradient)" strokeWidth="18" strokeLinecap="round" strokeDasharray="276" strokeDashoffset={276 - (276 * value) / 100} />
+        <circle cx="120" cy="120" r="8" fill="#dce8ff" />
+        <line x1="120" y1="120" x2={x} y2={y} stroke="#dce8ff" strokeWidth="6" strokeLinecap="round" />
+      </svg>
+      <div className="gauge-center">
+        <div className="gauge-value">{value}%</div>
+        <div className="gauge-label">budget_utilization placeholder</div>
+      </div>
+      <div className="gauge-scale"><span>0%</span><span>70%</span><span>85%</span><span>100%</span></div>
+    </div>
+  );
+}
+
+function KpiCard({ item }) {
+  return (
+    <div className={`kpi-card ${stateClass(item.state)}`}>
+      <div className="kpi-top">
+        <div className="eyebrow">{item.label}</div>
+        <div className={dotClass(item.state)} />
+      </div>
+      <div className="kpi-value">{item.value}</div>
+      <div className="kpi-foot">
+        <span>{item.detail}</span>
+        <span className={`trend ${item.direction}`}>
+          {item.direction === 'up' ? '↑' : '↓'} {item.change}
+        </span>
+      </div>
+      <div style={{ marginTop: 14, color: 'var(--muted)', fontSize: 12 }}>Placeholder: <strong style={{ color: 'var(--text)' }}>{item.placeholder}</strong></div>
+    </div>
+  );
+}
+
+function App() {
+  const [view, setView] = useState('plant');
+  const [selectedLine, setSelectedLine] = useState('Line 2');
+  const activeLine = lineData[selectedLine];
+
+  const lineMetrics = useMemo(() => {
+    const overtimeState = activeLine.overtimeHours > 10 ? 'red' : activeLine.overtimeHours >= 5 ? 'yellow' : 'green';
+    return [
+      { label: 'Overtime Hours', value: `${activeLine.overtimeHours}%`, change: activeLine.overtimeHours > 10 ? '+2.4%' : '+0.9%', direction: 'up', state: overtimeState, detail: 'threshold aware alert', placeholder: 'overtime_hours' },
+      { label: 'Active Employees', value: `${activeLine.activeEmployees}`, change: '-1.1%', direction: 'down', state: activeLine.activeEmployees < 100 ? 'yellow' : 'green', detail: 'currently clocked in', placeholder: 'employee_count' },
+      { label: 'Output / Hour', value: activeLine.outputPerHour.toLocaleString(), change: activeLine.outputPerHour < 1000 ? '-3.8%' : '+1.5%', direction: activeLine.outputPerHour < 1000 ? 'down' : 'up', state: activeLine.outputPerHour < 1000 ? 'red' : 'green', detail: 'production_output', placeholder: 'production_output' },
+      { label: 'Labor Cost / Unit', value: `$${activeLine.laborCostPerUnit.toFixed(2)}`, change: activeLine.laborCostPerUnit > 3.3 ? '+4.1%' : '+1.2%', direction: 'up', state: activeLine.laborCostPerUnit > 3.3 ? 'red' : activeLine.laborCostPerUnit > 3 ? 'yellow' : 'green', detail: 'labor_cost_per_unit', placeholder: 'labor_cost_per_unit' },
+    ];
+  }, [activeLine]);
+
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-badge">TX</div>
+          <div>
+            <h1>Textile Ops Live</h1>
+            <p>Large-screen production floor dashboard for payroll, staffing, and output health.</p>
+          </div>
+        </div>
+
+        <div className="nav-group">
+          <div className="nav-label">Views</div>
+          <button className={`nav-button ${view === 'plant' ? 'active' : ''}`} onClick={() => setView('plant')}>Plant-Wide Dashboard</button>
+          <button className={`nav-button ${view === 'line' ? 'active' : ''}`} onClick={() => setView('line')}>Line-Level Drilldown</button>
+        </div>
+
+        <div className="nav-group">
+          <div className="nav-label">Line Selector</div>
+          {Object.keys(lineData).map((line) => (
+            <button key={line} className={`nav-button ${selectedLine === line ? 'active' : ''}`} onClick={() => { setSelectedLine(line); setView('line'); }}>
+              {line}
+            </button>
+          ))}
+        </div>
+
+        <div className="status-block">
+          <div className="status-row"><span>Current Shift</span><strong>{liveContext.shift_name}</strong></div>
+          <div className="status-row"><span>Last Updated</span><strong>{liveContext.timestamp}</strong></div>
+          <div className="status-row"><span>line_name</span><strong>{selectedLine}</strong></div>
+        </div>
+      </aside>
+
+      <main className="main">
+        <section className="hero">
+          <div>
+            <h2>{view === 'plant' ? 'Plant-Wide Operational Dashboard' : `${selectedLine} Overview`}</h2>
+            <p>
+              {view === 'plant'
+                ? 'Executive view for rapid issue detection across payroll, staffing, overtime pressure, tax withholdings, and production efficiency.'
+                : 'Supervisor drilldown for diagnosing absenteeism, overtime spikes, labor cost drift, and output bottlenecks in real time.'}
+            </p>
+          </div>
+          <div className="meta-pills">
+            <div className="meta-pill"><span>shift_name</span><strong>{liveContext.shift_name}</strong></div>
+            <div className="meta-pill"><span>timestamp</span><strong>{liveContext.timestamp}</strong></div>
+            <div className="meta-pill"><span>line_name</span><strong>{view === 'plant' ? liveContext.line_name : selectedLine}</strong></div>
+          </div>
+        </section>
+
+        {view === 'plant' ? (
+          <>
+            <section className="kpi-grid">
+              {executiveMetrics.map((item) => <KpiCard key={item.label} item={item} />)}
+            </section>
+
+            <section className="panel-grid">
+              <div className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h3 className="panel-title">Labor Costs vs Production Output</h3>
+                    <div className="panel-subtitle">Live trend comparison for production_output and labor cost over the current operating day.</div>
+                  </div>
+                  <div className="panel-tag">Real-time sync ready</div>
+                </div>
+                <ChartPanel
+                  id="plant-chart"
+                  labels={plantSeries.labels}
+                  leftLabel="Labor Costs ($K)"
+                  rightLabel="Production Output (units x100)"
+                  leftData={plantSeries.laborCosts}
+                  rightData={plantSeries.output}
+                  leftColor="#69b7ff"
+                  rightColor="#23d18b"
+                />
+              </div>
+
+              <div className="stack">
+                <div className="gauge-card">
+                  <div className="stack-header">
+                    <div>
+                      <h3 className="panel-title">Budget Utilization</h3>
+                      <div className="panel-subtitle">Green &lt;70%, yellow 70–85%, red &gt;85%.</div>
+                    </div>
+                    <div className="alert-pill yellow-bg"><span>●</span> Warning band</div>
+                  </div>
+                  <Gauge value={75} />
+                </div>
+
+                <div className="insight-card">
+                  <div className="stack-header" style={{ marginBottom: 0 }}>
+                    <div>
+                      <h3 className="panel-title">Operational Insight</h3>
+                      <div className="panel-subtitle">Short summary panel for executive action.</div>
+                    </div>
+                  </div>
+                  <div className="insight-banner">
+                    <strong>Overtime increasing in Line 2 since last shift.</strong>
+                    <div>Absentee coverage and dye changeovers are increasing labor cost per unit while output trails the daily takt target.</div>
+                  </div>
+                  <div className="insight-list">
+                    <div className="insight-item"><span>Payroll</span>Payroll run is tracking above baseline but remains inside budget guardrails.</div>
+                    <div className="insight-item"><span>Staffing</span>Employee count is stable plant-wide, with the biggest gap isolated to Line 2.</div>
+                    <div className="insight-item"><span>Tax / Compliance</span>Tax withholdings softened slightly while overtime costs continue to trend upward.</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </>
+        ) : (
+          <>
+            <section className="panel" style={{ paddingBottom: 24 }}>
+              <div className="panel-header">
+                <div>
+                  <h3 className="panel-title">Line X Overview</h3>
+                  <div className="panel-subtitle">Selector supports Line 1 / Line 2 / Line 3 for supervisor-focused diagnostics.</div>
+                </div>
+                <div className="line-toolbar">
+                  {Object.keys(lineData).map((line) => (
+                    <button key={line} className={`line-chip ${selectedLine === line ? 'active' : ''}`} onClick={() => setSelectedLine(line)}>{line}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="kpi-grid">
+                {lineMetrics.map((item) => <KpiCard key={item.label} item={item} />)}
+              </div>
+            </section>
+
+            <section className="panel-grid">
+              <div className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h3 className="panel-title">Output vs Labor Cost Trend</h3>
+                    <div className="panel-subtitle">Per-line trend chart showing output and labor cost drift across the active shift.</div>
+                  </div>
+                  <div className={`alert-pill ${pillClass(activeLine.alerts.overtime.state)}`}><span>●</span>{activeLine.alerts.overtime.text}</div>
+                </div>
+                <ChartPanel
+                  id={`line-chart-${selectedLine}`}
+                  labels={activeLine.trend.labels}
+                  leftLabel="Output / Hour"
+                  rightLabel="Labor Cost / Unit"
+                  leftData={activeLine.trend.output}
+                  rightData={activeLine.trend.laborCost}
+                  leftColor="#23d18b"
+                  rightColor="#ffcc4d"
+                  height={280}
+                />
+              </div>
+
+              <div className="stack">
+                <div className="insight-card">
+                  <div className="stack-header" style={{ marginBottom: 0 }}>
+                    <div>
+                      <h3 className="panel-title">Alert Indicators</h3>
+                      <div className="panel-subtitle">Green / yellow / red logic mirrors the plant-wide dashboard.</div>
+                    </div>
+                  </div>
+                  {Object.entries(activeLine.alerts).map(([key, value]) => (
+                    <div key={key} className="insight-item">
+                      <span>{key}</span>
+                      <div className={`alert-pill ${pillClass(value.state)}`}><span>●</span>{value.text}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="insight-card">
+                  <div className="stack-header" style={{ marginBottom: 0 }}>
+                    <div>
+                      <h3 className="panel-title">Compact Issues Panel</h3>
+                      <div className="panel-subtitle">Absenteeism, overtime spikes, and production bottlenecks for fast supervisor response.</div>
+                    </div>
+                  </div>
+                  <div className="issues-grid" style={{ gridTemplateColumns: '1fr' }}>
+                    {activeLine.issues.map((issue) => (
+                      <div key={issue.title} className="issue-item">
+                        <small>{issue.title}</small>
+                        <strong>{issue.value}</strong>
+                        <div className={`alert-pill ${pillClass(issue.state)}`}><span>●</span>{issue.state.toUpperCase()}</div>
+                        <p>{issue.note}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+          </>
+        )}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
