@@ -1,380 +1,336 @@
-'use strict';
+#!/usr/bin/env node
+/**
+ * OpsMaster — Wasp Payroll CSV Importer
+ *
+ * Watches a shared network folder for new CSV exports from Wasp payroll.
+ * Parses, validates, and upserts data into Supabase.
+ *
+ * Setup:
+ *   npm install @supabase/supabase-js chokidar csv-parse dotenv
+ *
+ * Run:
+ *   node importer.js
+ *
+ * Or as a cron job (every 15 min):
+ *   *\/15 * * * * /usr/bin/node /path/to/importer.js >> /var/log/opsmaster-import.log 2>&1
+ */
 
 require('dotenv').config();
-const path    = require('path');
-const fs      = require('fs');
-const { parse }    = require('csv-parse/sync');
-const chokidar     = require('chokidar');
+const fs = require('fs');
+const path = require('path');
+const { parse } = require('csv-parse/sync');
+const chokidar = require('chokidar');
 const { createClient } = require('@supabase/supabase-js');
 
-// ============================================================
-// CONFIG — edit COL values to match your actual Wasp CSV headers
-// ============================================================
-const COL = {
-  wasp_id:          'Employee ID',
-  first_name:       'First Name',
-  last_name:        'Last Name',
-  department:       'Department',
-  job_title:        'Job Title',
-  pay_rate:         'Pay Rate',
-  pay_type:         'Pay Type',
-  shift_date:       'Work Date',
-  clock_in:         'Clock In',
-  clock_out:        'Clock Out',
-  shift_label:      'Shift',
-  regular_hours:    'Regular Hours',
-  overtime_hours:   'OT Hours',
-  total_hours:      'Total Hours',
-  gross_pay:        'Gross Pay',
-  pay_period_start: 'Period Start',
-  pay_period_end:   'Period End',
-};
+// ── Config ────────────────────────────────────────────────────────────────────
+const WATCH_FOLDER = process.env.WASP_EXPORT_FOLDER || 'C:/WaspExports/Payroll';
+const PROCESSED_DIR = path.join(WATCH_FOLDER, '_processed');
+const ERROR_DIR = path.join(WATCH_FOLDER, '_errors');
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY; // use service role key for server-side
 
-// ============================================================
-// ENV VALIDATION
-// ============================================================
-const SUPABASE_URL        = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-const WATCH_FOLDER        = process.env.WASP_EXPORT_FOLDER;
-
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !WATCH_FOLDER) {
-  console.error('[ERROR] Missing required env vars. Copy .env.example to .env and fill it in.');
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('ERROR: Missing SUPABASE_URL or SUPABASE_SERVICE_KEY in .env');
   process.exit(1);
 }
 
-// ============================================================
-// SUPABASE CLIENT
-// ============================================================
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-  auth: { persistSession: false },
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Ensure subdirectories exist
+[PROCESSED_DIR, ERROR_DIR].forEach((dir) => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-// ============================================================
-// LOGGING
-// ============================================================
-function log(msg) {
-  console.log(`[${new Date().toISOString()}] ${msg}`);
+// ── CSV Column Mapping ────────────────────────────────────────────────────────
+// Wasp payroll exports vary — adjust these to match YOUR export column headers.
+// Run one file through and console.log(rows[0]) to see the real column names.
+const COL = {
+  wasp_id: 'Employee ID',
+  first_name: 'First Name',
+  last_name: 'Last Name',
+  department: 'Department',
+  job_title: 'Job Title',
+  pay_rate: 'Pay Rate',
+  pay_type: 'Pay Type',
+  shift_date: 'Work Date',
+  clock_in: 'Clock In',
+  clock_out: 'Clock Out',
+  shift_label: 'Shift',
+  regular_hours: 'Regular Hours',
+  overtime_hours: 'OT Hours',
+  total_hours: 'Total Hours',
+  gross_pay: 'Gross Pay',
+  pay_period_start: 'Period Start',
+  pay_period_end: 'Period End',
+};
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+const log = (msg) => console.log(`[${new Date().toISOString()}] ${msg}`);
+
+function parseDate(str) {
+  if (!str || str.trim() === '') return null;
+  const d = new Date(str.trim());
+  return isNaN(d) ? null : d.toISOString().split('T')[0];
 }
 
-// ============================================================
-// HELPER: ensure subdirectory exists
-// ============================================================
-function ensureDir(dirPath) {
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-  }
+function parseDateTime(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return null;
+  const combined = `${dateStr.trim()} ${timeStr.trim()}`;
+  const d = new Date(combined);
+  return isNaN(d) ? null : d.toISOString();
 }
 
-// ============================================================
-// HELPER: parse numeric value from CSV string
-// ============================================================
-function toNum(val) {
-  if (val === undefined || val === null || val === '') return null;
-  const n = parseFloat(String(val).replace(/[^0-9.\-]/g, ''));
-  return isNaN(n) ? null : n;
+function parseNum(str) {
+  if (!str || str.trim() === '') return 0;
+  return parseFloat(str.replace(/[$,]/g, '').trim()) || 0;
 }
 
-// ============================================================
-// HELPER: parse date/timestamp or return null
-// ============================================================
-function toDate(val) {
-  if (!val) return null;
-  const d = new Date(val);
-  return isNaN(d.getTime()) ? null : d.toISOString();
-}
-
-function toDateOnly(val) {
-  if (!val) return null;
-  const d = new Date(val);
-  if (isNaN(d.getTime())) return null;
-  return d.toISOString().split('T')[0];
-}
-
-// ============================================================
-// MAIN IMPORT FUNCTION
-// ============================================================
+// ── Core Import Logic ─────────────────────────────────────────────────────────
 async function importFile(filePath) {
   const fileName = path.basename(filePath);
-  const processedDir = path.join(WATCH_FOLDER, '_processed');
-  const errorsDir    = path.join(WATCH_FOLDER, '_errors');
-  ensureDir(processedDir);
-  ensureDir(errorsDir);
-
   log(`Processing: ${fileName}`);
 
-  // ── 1. Create payroll_run record ──────────────────────────
-  const { data: runData, error: runErr } = await supabase
-    .from('payroll_runs')
-    .insert({ file_name: fileName, status: 'processing' })
-    .select('id')
-    .single();
-
-  if (runErr) {
-    log(`[ERROR] Could not create payroll_run for ${fileName}: ${runErr.message}`);
-    _moveFile(filePath, path.join(errorsDir, fileName));
+  // Read and parse CSV
+  let rawContent;
+  try {
+    rawContent = fs.readFileSync(filePath, 'utf-8');
+  } catch (err) {
+    log(`ERROR reading file: ${err.message}`);
     return;
   }
-  const runId = runData.id;
-  log(`Created payroll_run ${runId}`);
 
   let rows;
   try {
-    const raw = fs.readFileSync(filePath, 'utf8');
-    rows = parse(raw, {
-      columns:           true,
-      skip_empty_lines:  true,
-      trim:              true,
+    rows = parse(rawContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
     });
-  } catch (parseErr) {
-    log(`[ERROR] Failed to parse CSV ${fileName}: ${parseErr.message}`);
-    await _failRun(runId, `CSV parse error: ${parseErr.message}`);
-    _moveFile(filePath, path.join(errorsDir, fileName));
+  } catch (err) {
+    log(`ERROR parsing CSV: ${err.message}`);
+    moveFile(filePath, ERROR_DIR);
+    return;
+  }
+
+  if (rows.length === 0) {
+    log(`SKIP: Empty file ${fileName}`);
+    moveFile(filePath, PROCESSED_DIR);
     return;
   }
 
   log(`Parsed ${rows.length} rows from ${fileName}`);
 
-  const goodRows   = [];
-  const errorRows  = [];
+  // Detect pay period from first row
+  const firstRow = rows[0];
+  const periodStart = parseDate(firstRow[COL.pay_period_start]);
+  const periodEnd = parseDate(firstRow[COL.pay_period_end]);
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const waspId = row[COL.wasp_id];
-    if (!waspId || !waspId.trim()) {
-      errorRows.push({ rowIndex: i + 2, raw: row, msg: `Missing ${COL.wasp_id}` });
-    } else {
-      goodRows.push(row);
-    }
-  }
+  // Create payroll_run record
+  const { data: runData, error: runError } = await supabase
+    .from('payroll_runs')
+    .insert({
+      file_name: fileName,
+      pay_period_start: periodStart,
+      pay_period_end: periodEnd,
+      row_count: rows.length,
+      status: 'processing',
+    })
+    .select('id')
+    .single();
 
-  // ── 2. Log bad rows ───────────────────────────────────────
-  if (errorRows.length > 0) {
-    const errInserts = errorRows.map(e => ({
-      payroll_run_id: runId,
-      row_number:     e.rowIndex,
-      raw_data:       e.raw,
-      error_message:  e.msg,
-    }));
-    const { error: errInsertErr } = await supabase
-      .from('import_errors')
-      .insert(errInserts);
-    if (errInsertErr) log(`[WARN] Could not log import errors: ${errInsertErr.message}`);
-    else log(`Logged ${errorRows.length} bad rows to import_errors`);
-  }
-
-  if (goodRows.length === 0) {
-    log(`[WARN] No valid rows in ${fileName}. Marking as failed.`);
-    await _failRun(runId, 'No valid rows found', errorRows.length, rows.length);
-    _moveFile(filePath, path.join(errorsDir, fileName));
+  if (runError) {
+    log(`ERROR creating payroll_run: ${runError.message}`);
+    moveFile(filePath, ERROR_DIR);
     return;
   }
 
-  // ── 3. Deduplicate + upsert employees ─────────────────────
-  const empMap = new Map();
-  for (const row of goodRows) {
-    const wid = row[COL.wasp_id].trim();
-    if (!empMap.has(wid)) {
-      empMap.set(wid, {
-        wasp_id:    wid,
-        first_name: row[COL.first_name] || '',
-        last_name:  row[COL.last_name]  || '',
-        department: row[COL.department] || null,
-        job_title:  row[COL.job_title]  || null,
-        pay_rate:   toNum(row[COL.pay_rate]),
-        pay_type:   row[COL.pay_type]   || null,
+  const runId = runData.id;
+  log(`Created payroll_run ${runId}`);
+
+  // Process rows
+  const employees = new Map(); // wasp_id → employee upsert data
+  const shiftRecords = [];
+  const payRecords = [];
+  const errorRecords = [];
+  let totalHours = 0;
+  let totalGross = 0;
+
+  rows.forEach((row, i) => {
+    const waspId = row[COL.wasp_id]?.trim();
+    if (!waspId) {
+      errorRecords.push({
+        payroll_run_id: runId,
+        row_number: i + 2,
+        raw_data: JSON.stringify(row),
+        error_message: 'Missing Employee ID',
+      });
+      return;
+    }
+
+    // Build employee upsert (deduped by wasp_id)
+    if (!employees.has(waspId)) {
+      employees.set(waspId, {
+        wasp_id: waspId,
+        first_name: row[COL.first_name]?.trim() || 'Unknown',
+        last_name: row[COL.last_name]?.trim() || '',
+        department: row[COL.department]?.trim() || 'Unassigned',
+        job_title: row[COL.job_title]?.trim() || null,
+        pay_rate: parseNum(row[COL.pay_rate]),
+        pay_type: row[COL.pay_type]?.trim().toLowerCase() || 'hourly',
+        status: 'active',
         updated_at: new Date().toISOString(),
       });
     }
-  }
 
-  const employeeUpserts = Array.from(empMap.values());
-  const { error: empErr } = await supabase
+    // Build shift record
+    const shiftDate = parseDate(row[COL.shift_date]);
+    const clockIn = parseDateTime(row[COL.shift_date], row[COL.clock_in]);
+    const clockOut = parseDateTime(row[COL.shift_date], row[COL.clock_out]);
+    const hrs = parseNum(row[COL.total_hours]);
+
+    if (shiftDate) {
+      shiftRecords.push({
+        wasp_id: waspId,
+        shift_date: shiftDate,
+        clock_in: clockIn,
+        clock_out: clockOut,
+        shift_label: row[COL.shift_label]?.trim() || null,
+        hours_worked: hrs,
+        department: row[COL.department]?.trim() || null,
+        status: clockOut ? 'completed' : 'active',
+      });
+    }
+
+    // Build payroll entry
+    const gross = parseNum(row[COL.gross_pay]);
+    totalHours += hrs;
+    totalGross += gross;
+
+    payRecords.push({
+      payroll_run_id: runId,
+      wasp_id: waspId,
+      pay_period_start: periodStart,
+      pay_period_end: periodEnd,
+      regular_hours: parseNum(row[COL.regular_hours]),
+      overtime_hours: parseNum(row[COL.overtime_hours]),
+      total_hours: hrs,
+      gross_pay: gross,
+      department: row[COL.department]?.trim() || null,
+    });
+  });
+
+  // 1. Upsert employees
+  const employeeList = Array.from(employees.values());
+  const { error: empError } = await supabase
     .from('employees')
-    .upsert(employeeUpserts, { onConflict: 'wasp_id', ignoreDuplicates: false });
+    .upsert(employeeList, { onConflict: 'wasp_id' });
 
-  if (empErr) {
-    log(`[ERROR] Employee upsert failed: ${empErr.message}`);
-    await _failRun(runId, `Employee upsert error: ${empErr.message}`, errorRows.length, rows.length);
-    _moveFile(filePath, path.join(errorsDir, fileName));
-    return;
+  if (empError) {
+    log(`ERROR upserting employees: ${empError.message}`);
+  } else {
+    log(`Upserted ${employeeList.length} employees`);
   }
-  log(`Upserted ${employeeUpserts.length} employees`);
 
-  // ── 4. Fetch UUID map: wasp_id → UUID ─────────────────────
-  const waspIds = Array.from(empMap.keys());
-  const { data: empRecords, error: fetchErr } = await supabase
+  // 2. Fetch employee UUID map (wasp_id → UUID)
+  const { data: empRows } = await supabase
     .from('employees')
     .select('id, wasp_id')
-    .in('wasp_id', waspIds);
+    .in(
+      'wasp_id',
+      employeeList.map((e) => e.wasp_id),
+    );
 
-  if (fetchErr) {
-    log(`[ERROR] Could not fetch employee UUIDs: ${fetchErr.message}`);
-    await _failRun(runId, `UUID fetch error: ${fetchErr.message}`, errorRows.length, rows.length);
-    _moveFile(filePath, path.join(errorsDir, fileName));
-    return;
+  const idMap = new Map((empRows || []).map((e) => [e.wasp_id, e.id]));
+
+  // 3. Insert shifts (with employee_id resolved)
+  const shiftsWithIds = shiftRecords.map((s) => ({
+    ...s,
+    employee_id: idMap.get(s.wasp_id) || null,
+  }));
+
+  if (shiftsWithIds.length > 0) {
+    const { error: shiftError } = await supabase.from('shifts').insert(shiftsWithIds);
+    if (shiftError) log(`ERROR inserting shifts: ${shiftError.message}`);
+    else log(`Inserted ${shiftsWithIds.length} shift records`);
   }
 
-  const waspToUuid = {};
-  for (const rec of empRecords) {
-    waspToUuid[rec.wasp_id] = rec.id;
+  // 4. Insert payroll entries
+  const payWithIds = payRecords.map((p) => ({
+    ...p,
+    employee_id: idMap.get(p.wasp_id) || null,
+  }));
+
+  if (payWithIds.length > 0) {
+    const { error: payError } = await supabase.from('payroll_entries').insert(payWithIds);
+    if (payError) log(`ERROR inserting payroll entries: ${payError.message}`);
+    else log(`Inserted ${payWithIds.length} payroll entries`);
   }
 
-  // ── 5. Build + insert shift records ───────────────────────
-  const shiftInserts = [];
-  for (const row of goodRows) {
-    const wid = row[COL.wasp_id].trim();
-    const empId = waspToUuid[wid];
-    if (!empId) continue;
-    shiftInserts.push({
-      employee_id:  empId,
-      wasp_id:      wid,
-      shift_date:   toDateOnly(row[COL.shift_date]),
-      clock_in:     toDate(row[COL.clock_in]),
-      clock_out:    toDate(row[COL.clock_out]),
-      shift_label:  row[COL.shift_label]  || null,
-      hours_worked: toNum(row[COL.total_hours]),
-      department:   row[COL.department]   || null,
-      status:       'completed',
-    });
+  // 5. Insert error rows
+  if (errorRecords.length > 0) {
+    await supabase.from('import_errors').insert(errorRecords);
+    log(`Logged ${errorRecords.length} row errors`);
   }
 
-  if (shiftInserts.length > 0) {
-    const { error: shiftErr } = await supabase
-      .from('shifts')
-      .insert(shiftInserts);
-    if (shiftErr) log(`[WARN] Shift insert error: ${shiftErr.message}`);
-    else log(`Inserted ${shiftInserts.length} shift records`);
-  }
-
-  // ── 6. Build + insert payroll_entry records ───────────────
-  // Determine pay period from first valid row
-  const firstRow         = goodRows[0];
-  const payPeriodStart   = toDateOnly(firstRow[COL.pay_period_start]);
-  const payPeriodEnd     = toDateOnly(firstRow[COL.pay_period_end]);
-
-  const entryInserts = [];
-  let totalHoursSum  = 0;
-  let totalPaySum    = 0;
-
-  for (const row of goodRows) {
-    const wid   = row[COL.wasp_id].trim();
-    const empId = waspToUuid[wid];
-    if (!empId) continue;
-
-    const totHrs = toNum(row[COL.total_hours]) || 0;
-    const gPay   = toNum(row[COL.gross_pay])   || 0;
-    totalHoursSum += totHrs;
-    totalPaySum   += gPay;
-
-    entryInserts.push({
-      payroll_run_id:   runId,
-      employee_id:      empId,
-      wasp_id:          wid,
-      pay_period_start: payPeriodStart || toDateOnly(row[COL.pay_period_start]),
-      pay_period_end:   payPeriodEnd   || toDateOnly(row[COL.pay_period_end]),
-      regular_hours:    toNum(row[COL.regular_hours])  || 0,
-      overtime_hours:   toNum(row[COL.overtime_hours]) || 0,
-      total_hours:      totHrs,
-      gross_pay:        gPay,
-      department:       row[COL.department] || null,
-    });
-  }
-
-  if (entryInserts.length > 0) {
-    const { error: entryErr } = await supabase
-      .from('payroll_entries')
-      .insert(entryInserts);
-    if (entryErr) log(`[WARN] Payroll entry insert error: ${entryErr.message}`);
-    else log(`Inserted ${entryInserts.length} payroll entries`);
-  }
-
-  // ── 7. Update payroll_run with final totals ───────────────
-  const finalStatus = errorRows.length === 0 ? 'completed' : 'partial';
-  const { error: updateErr } = await supabase
+  // 6. Update payroll_run with final totals
+  await supabase
     .from('payroll_runs')
     .update({
-      pay_period_start: payPeriodStart,
-      pay_period_end:   payPeriodEnd,
-      total_employees:  employeeUpserts.length,
-      total_hours:      Math.round(totalHoursSum * 100) / 100,
-      total_gross_pay:  Math.round(totalPaySum   * 100) / 100,
-      row_count:        rows.length,
-      error_count:      errorRows.length,
-      status:           finalStatus,
+      total_employees: employeeList.length,
+      total_hours: Math.round(totalHours * 100) / 100,
+      total_gross_pay: Math.round(totalGross * 100) / 100,
+      error_count: errorRecords.length,
+      status:
+        errorRecords.length === rows.length
+          ? 'failed'
+          : errorRecords.length > 0
+            ? 'partial'
+            : 'completed',
     })
     .eq('id', runId);
 
-  if (updateErr) log(`[WARN] Could not update payroll_run: ${updateErr.message}`);
-  else log(`Run ${runId} marked ${finalStatus} — ${employeeUpserts.length} employees, ${totalHoursSum.toFixed(2)} hrs, $${totalPaySum.toFixed(2)}`);
+  log(
+    `Import complete — ${employeeList.length} employees, ${shiftsWithIds.length} shifts, $${totalGross.toFixed(2)} gross pay`,
+  );
 
-  // ── 8. Move file to _processed ────────────────────────────
-  _moveFile(filePath, path.join(processedDir, `${Date.now()}_${fileName}`));
-  log(`Done: ${fileName}`);
+  // Move file to processed folder
+  moveFile(filePath, PROCESSED_DIR);
 }
 
-// ============================================================
-// HELPERS
-// ============================================================
-async function _failRun(runId, notes, errorCount = 0, rowCount = 0) {
-  await supabase
-    .from('payroll_runs')
-    .update({ status: 'failed', notes, error_count: errorCount, row_count: rowCount })
-    .eq('id', runId);
-}
-
-function _moveFile(src, dest) {
+function moveFile(src, destDir) {
+  const destPath = path.join(destDir, path.basename(src));
   try {
-    fs.renameSync(src, dest);
-    log(`Moved → ${dest}`);
-  } catch (e) {
-    log(`[WARN] Could not move ${src}: ${e.message}`);
+    fs.renameSync(src, destPath);
+    log(`Moved to ${destDir}`);
+  } catch (err) {
+    log(`WARN: Could not move file: ${err.message}`);
   }
 }
 
-// ============================================================
-// CHOKIDAR WATCHER
-// ============================================================
-log(`OpsMaster Wasp Importer starting…`);
+// ── File Watcher ──────────────────────────────────────────────────────────────
+log('OpsMaster Wasp Importer started');
 log(`Watching: ${WATCH_FOLDER}`);
 
-ensureDir(WATCH_FOLDER);
-
 const watcher = chokidar.watch(path.join(WATCH_FOLDER, '*.csv'), {
-  ignored:        /(^|[/\\])\../,   // ignore dot files
-  persistent:     true,
-  ignoreInitial:  false,            // process existing files on startup
+  ignored: /(^|[/\\])[\._]/, // ignore dotfiles and _processed/_errors
+  persistent: true,
+  ignoreInitial: false, // process any existing CSVs on startup
   awaitWriteFinish: {
-    stabilityThreshold: 2000,
-    pollInterval:       100,
+    stabilityThreshold: 2000, // wait 2s after last write (file fully copied)
+    pollInterval: 500,
   },
 });
 
-watcher
-  .on('add', async (filePath) => {
-    // Skip files already in _processed or _errors subdirs
-    const rel = path.relative(WATCH_FOLDER, filePath);
-    if (rel.startsWith('_processed') || rel.startsWith('_errors')) return;
-    try {
-      await importFile(filePath);
-    } catch (err) {
-      log(`[ERROR] Unhandled error for ${filePath}: ${err.message}`);
-    }
-  })
-  .on('error', (err) => {
-    log(`[ERROR] Watcher error: ${err.message}`);
-  });
+watcher.on('add', (filePath) => importFile(filePath)).on('error', (err) => log(`Watcher error: ${err}`));
 
-log('Watcher ready. Waiting for CSV files…');
-
-// ============================================================
-// GRACEFUL SHUTDOWN
-// ============================================================
-async function shutdown(signal) {
-  log(`Received ${signal}. Shutting down…`);
-  await watcher.close();
-  log('Watcher closed. Goodbye.');
+// Graceful shutdown
+process.on('SIGINT', () => {
+  log('Shutting down');
+  watcher.close();
   process.exit(0);
-}
-
-process.on('SIGINT',  () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));
+});
+process.on('SIGTERM', () => {
+  log('Shutting down');
+  watcher.close();
+  process.exit(0);
+});
