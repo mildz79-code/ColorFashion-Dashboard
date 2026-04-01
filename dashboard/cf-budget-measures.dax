@@ -1,0 +1,217 @@
+// ============================================================
+// COLOR FASHION BUDGET DASHBOARD — DAX MEASURES
+// ============================================================
+// Add these to your CF POWER BI file after loading the
+// QuickBooks expense data table (named "Expenses") and
+// an optional "Budget" table with monthly budget targets.
+//
+// Assumes Expenses table has columns:
+//   ExpenseDate, Category, Vendor, Amount, Account
+//
+// Assumes Budget table has columns:
+//   BudgetMonth (date), Category, MonthlyBudget
+//
+// Assumes your existing "orders" table has:
+//   order date, total amount columns
+// ============================================================
+
+// ─── FOLDER: Budget\Spending ─────────────────────────────────
+
+// Total Expenses (all time, filtered by context)
+Total Expenses = 
+    SUM(Expenses[Amount])
+
+// Expenses This Month
+Expenses MTD = 
+    CALCULATE(
+        SUM(Expenses[Amount]),
+        DATESMTD(Expenses[ExpenseDate])
+    )
+
+// Expenses Last Month (for comparison)
+Expenses Last Month = 
+    CALCULATE(
+        SUM(Expenses[Amount]),
+        DATEADD(
+            DATESMTD(Expenses[ExpenseDate]),
+            -1,
+            MONTH
+        )
+    )
+
+// Month-over-Month Expense Change %
+Expense MoM Change % = 
+    VAR _CurrentMonth = [Expenses MTD]
+    VAR _LastMonth = [Expenses Last Month]
+    RETURN
+        IF(
+            _LastMonth <> 0,
+            DIVIDE(_CurrentMonth - _LastMonth, _LastMonth),
+            BLANK()
+        )
+
+// Weekly Expense Run Rate (based on MTD spending)
+Weekly Expense Rate = 
+    VAR _MTD = [Expenses MTD]
+    VAR _DaysElapsed = DAY(TODAY()) - 1
+    RETURN
+        IF(
+            _DaysElapsed > 0,
+            DIVIDE(_MTD, _DaysElapsed) * 7,
+            BLANK()
+        )
+
+// Daily Average Spend
+Daily Avg Spend = 
+    VAR _MTD = [Expenses MTD]
+    VAR _DaysElapsed = MAX(DAY(TODAY()) - 1, 1)
+    RETURN
+        DIVIDE(_MTD, _DaysElapsed)
+
+// Rolling 3-Month Average Expenses
+Expenses 3M Avg = 
+    CALCULATE(
+        AVERAGEX(
+            SUMMARIZE(
+                Expenses,
+                Expenses[ExpenseDate].[Month],
+                Expenses[ExpenseDate].[Year]
+            ),
+            CALCULATE(SUM(Expenses[Amount]))
+        ),
+        DATESINPERIOD(
+            Expenses[ExpenseDate],
+            EOMONTH(TODAY(), -1),
+            -3,
+            MONTH
+        )
+    )
+
+// Year-to-Date Expenses
+Expenses YTD = 
+    CALCULATE(
+        SUM(Expenses[Amount]),
+        DATESYTD(Expenses[ExpenseDate])
+    )
+
+
+// ─── FOLDER: Budget\Targets ─────────────────────────────────
+
+// Monthly Budget Target (from Budget table)
+Monthly Budget Target = 
+    SUM(Budget[MonthlyBudget])
+
+// Weekly Budget Target (monthly / ~4.33 weeks)
+Weekly Budget Target = 
+    DIVIDE([Monthly Budget Target], 4.33)
+
+// Budget Remaining This Month
+Budget Remaining = 
+    [Monthly Budget Target] - [Expenses MTD]
+
+// Budget Utilization %
+Budget Utilization % = 
+    IF(
+        [Monthly Budget Target] <> 0,
+        DIVIDE([Expenses MTD], [Monthly Budget Target]),
+        BLANK()
+    )
+
+// Budget Variance (negative = over budget)
+Budget Variance = 
+    [Monthly Budget Target] - [Expenses MTD]
+
+// Budget Variance %
+Budget Variance % = 
+    IF(
+        [Monthly Budget Target] <> 0,
+        DIVIDE(
+            [Monthly Budget Target] - [Expenses MTD],
+            [Monthly Budget Target]
+        ),
+        BLANK()
+    )
+
+// Projected Month-End Spend (linear projection)
+Projected Month End Spend = 
+    VAR _MTD = [Expenses MTD]
+    VAR _DaysElapsed = MAX(DAY(TODAY()) - 1, 1)
+    VAR _DaysInMonth = DAY(EOMONTH(TODAY(), 0))
+    RETURN
+        DIVIDE(_MTD, _DaysElapsed) * _DaysInMonth
+
+// Projected Budget Status (Over/Under/On Track)
+Projected Budget Status = 
+    VAR _Projected = [Projected Month End Spend]
+    VAR _Target = [Monthly Budget Target]
+    VAR _Variance = DIVIDE(_Projected - _Target, _Target)
+    RETURN
+        SWITCH(
+            TRUE(),
+            _Variance > 0.05, "Over Budget",
+            _Variance < -0.05, "Under Budget",
+            "On Track"
+        )
+
+
+// ─── FOLDER: Budget\Forecast ─────────────────────────────────
+
+// Next Month Forecast (based on 3-month trend)
+Next Month Forecast = 
+    VAR _Avg3M = [Expenses 3M Avg]
+    VAR _MoMChange = [Expense MoM Change %]
+    RETURN
+        IF(
+            NOT ISBLANK(_Avg3M),
+            _Avg3M * (1 + COALESCE(_MoMChange, 0)),
+            BLANK()
+        )
+
+// Expense per Order (cost efficiency metric)
+Expense Per Order = 
+    VAR _TotalExpenses = [Total Expenses]
+    VAR _TotalOrders = [Total Orders]
+    RETURN
+        IF(
+            _TotalOrders > 0,
+            DIVIDE(_TotalExpenses, _TotalOrders),
+            BLANK()
+        )
+
+// Cost as % of Revenue
+Cost Revenue Ratio = 
+    VAR _Expenses = [Expenses MTD]
+    VAR _Revenue = [Order Amount MTD]
+    RETURN
+        IF(
+            _Revenue > 0,
+            DIVIDE(_Expenses, _Revenue),
+            BLANK()
+        )
+
+
+// ─── FOLDER: Budget\Categories ───────────────────────────────
+
+// Top Expense Category (for cards/KPIs)
+Top Expense Category = 
+    VAR _TopCategory =
+        TOPN(
+            1,
+            ADDCOLUMNS(
+                VALUES(Expenses[Category]),
+                "@CatTotal", CALCULATE(SUM(Expenses[Amount]))
+            ),
+            [@CatTotal],
+            DESC
+        )
+    RETURN
+        MAXX(_TopCategory, Expenses[Category])
+
+// Category Budget Utilization
+Category Budget % = 
+    VAR _Spent = 
+        CALCULATE(SUM(Expenses[Amount]), DATESMTD(Expenses[ExpenseDate]))
+    VAR _Budget = 
+        CALCULATE(SUM(Budget[MonthlyBudget]))
+    RETURN
+        IF(_Budget > 0, DIVIDE(_Spent, _Budget), BLANK())
