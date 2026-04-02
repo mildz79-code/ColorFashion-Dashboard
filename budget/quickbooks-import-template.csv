@@ -1,0 +1,7 @@
+ExpenseDate,Account,Category,Vendor,Amount,Memo
+2026-01-15,5000 - Cost of Goods Sold,Raw Materials,Pacific Textiles Inc,12450.00,Greige fabric order #4521
+2026-01-15,5100 - Dye Chemicals,Dye Chemicals,Archroma USA,3200.00,Reactive dyes restock
+2026-01-18,6200 - Utilities,Energy & Utilities,SoCal Edison,4850.00,January electricity
+2026-01-20,6100 - Payroll,Labor & Payroll,ADP Payroll,28900.00,Bi-weekly payroll run
+2026-01-22,5200 - Shipping,Shipping & Freight,FedEx Freight,1850.00,Customer shipments week 3
+2026-01-25,6300 - Maintenance,Maintenance,Industrial Parts Co,2100.00,Machine #7 belt replacement

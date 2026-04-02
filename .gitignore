@@ -2,3 +2,10 @@ node_modules/
 opsmaster-employee/importer/node_modules/
 .env
 opsmaster-employee/importer/.env
+_processed/
+_errors/
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
