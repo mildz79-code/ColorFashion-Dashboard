@@ -33,3 +33,12 @@ OpsMaster is an operations intelligence platform for ColorFashion. It is a singl
 - To deploy: push to `main` branch — Netlify auto-deploys
 - Custom domain: add in Netlify dashboard under **Domain settings**
 - Redirect rules: `netlify.toml` and `_redirects` (both present)
+
+## Budget Dashboard Module
+- Location: budget/
+- React prototype: cf-budget-dashboard.jsx (light theme, calendar + analytics pages)
+- DAX measures: cf-budget-measures.dax (22 measures across 4 folders)
+- QuickBooks template: quickbooks-import-template.csv
+- Supabase schema: expenses-schema.sql (optional web-based tracking)
+- Power BI connects to IDSERVER/dye for orders + QuickBooks CSV for expenses
+- Design: Light background, Inter typeface, navy/slate palette, no emojis
