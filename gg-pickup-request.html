@@ -5,190 +5,104 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Greige Good Pick Up Request — Color Fashion</title>
 <style>
-  :root {
-    --blue:   #1a56db;
-    --green:  #057a55;
-    --red:    #c81e1e;
-    --gray:   #6b7280;
-    --light:  #f3f4f6;
-    --border: #d1d5db;
-    --white:  #ffffff;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; color: #111827; }
+  :root { --blue:#1a56db; --green:#057a55; --red:#c81e1e; --gray:#6b7280; --border:#d1d5db; --white:#ffffff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#111827; }
 
-  /* ── HEADER ── */
-  header {
-    background: #1e3a5f;
-    color: #fff;
-    padding: 14px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 6px rgba(0,0,0,.3);
-  }
-  header h1 { font-size: 1.25rem; letter-spacing: .5px; }
-  header span { font-size: .85rem; opacity: .75; }
+  header { background:#1e3a5f; color:#fff; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 6px rgba(0,0,0,.3); }
+  header h1 { font-size:1.25rem; letter-spacing:.5px; }
+  header span { font-size:.85rem; opacity:.75; }
 
-  /* ── TABS ── */
-  .tabs {
-    display: flex;
-    background: #fff;
-    border-bottom: 2px solid var(--border);
-    padding: 0 24px;
-  }
-  .tab-btn {
-    padding: 12px 22px;
-    cursor: pointer;
-    font-size: .95rem;
-    font-weight: 600;
-    border: none;
-    background: none;
-    color: var(--gray);
-    border-bottom: 3px solid transparent;
-    margin-bottom: -2px;
-    transition: color .2s, border-color .2s;
-  }
-  .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
-  .tab-btn:hover { color: var(--blue); }
+  .tabs { display:flex; background:#fff; border-bottom:2px solid var(--border); padding:0 24px; }
+  .tab-btn { padding:12px 22px; cursor:pointer; font-size:.95rem; font-weight:600; border:none; background:none; color:var(--gray); border-bottom:3px solid transparent; margin-bottom:-2px; transition:color .2s,border-color .2s; }
+  .tab-btn.active { color:var(--blue); border-bottom-color:var(--blue); }
+  .tab-btn:hover { color:var(--blue); }
 
-  /* ── MAIN CONTENT ── */
-  .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
-  .panel { display: none; }
-  .panel.active { display: block; }
+  .container { max-width:1100px; margin:24px auto; padding:0 16px; }
+  .panel { display:none; }
+  .panel.active { display:block; }
 
-  /* ── CARD ── */
-  .card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 4px rgba(0,0,0,.06);
-  }
-  .card h2 { font-size: 1.05rem; margin-bottom: 18px; color: #1e3a5f; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  .card { background:var(--white); border:1px solid var(--border); border-radius:10px; padding:24px; margin-bottom:20px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .card h2 { font-size:1.05rem; margin-bottom:18px; color:#1e3a5f; border-bottom:1px solid var(--border); padding-bottom:10px; }
 
-  /* ── FORM ── */
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .form-grid .full { grid-column: 1 / -1; }
-  label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: 4px; color: #374151; }
-  input, select, textarea {
-    width: 100%; padding: 9px 12px;
-    border: 1px solid var(--border); border-radius: 6px;
-    font-size: .9rem; transition: border-color .2s;
-  }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); }
-  textarea { resize: vertical; min-height: 60px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-grid .full { grid-column:1/-1; }
+  label { display:block; font-size:.82rem; font-weight:600; margin-bottom:4px; color:#374151; }
+  input, select, textarea { width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:6px; font-size:.9rem; transition:border-color .2s; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--blue); }
+  textarea { resize:vertical; min-height:60px; }
 
-  .btn {
-    padding: 9px 20px; border: none; border-radius: 6px;
-    font-size: .9rem; font-weight: 600; cursor: pointer; transition: opacity .2s;
-  }
-  .btn:hover { opacity: .87; }
-  .btn-primary { background: var(--blue); color: #fff; }
-  .btn-success { background: var(--green); color: #fff; }
-  .btn-danger  { background: var(--red); color: #fff; }
-  .btn-gray    { background: #e5e7eb; color: #374151; }
-  .btn-print   { background: #1e3a5f; color: #fff; }
+  .btn { padding:9px 20px; border:none; border-radius:6px; font-size:.9rem; font-weight:600; cursor:pointer; transition:opacity .2s; }
+  .btn:hover { opacity:.87; }
+  .btn-primary { background:var(--blue); color:#fff; }
+  .btn-gray    { background:#e5e7eb; color:#374151; }
+  .btn-print   { background:#1e3a5f; color:#fff; }
+  .btn-row { display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
 
-  .btn-row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .alert { padding:10px 14px; border-radius:6px; font-size:.88rem; margin-bottom:14px; display:none; }
+  .alert.success { background:#def7ec; color:#03543f; border:1px solid #84e1bc; }
+  .alert.error   { background:#fde8e8; color:#9b1c1c; border:1px solid #f8b4b4; }
+  .alert.show    { display:block; }
 
-  /* ── ALERT ── */
-  .alert {
-    padding: 10px 14px; border-radius: 6px; font-size: .88rem;
-    margin-bottom: 14px; display: none;
-  }
-  .alert.success { background: #def7ec; color: #03543f; border: 1px solid #84e1bc; }
-  .alert.error   { background: #fde8e8; color: #9b1c1c; border: 1px solid #f8b4b4; }
-  .alert.show    { display: block; }
+  .filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:16px; }
+  .filter-bar > div { display:flex; flex-direction:column; gap:3px; }
+  .filter-bar input, .filter-bar select { min-width:140px; }
 
-  /* ── FILTER BAR ── */
-  .filter-bar {
-    display: flex; gap: 10px; flex-wrap: wrap;
-    align-items: flex-end; margin-bottom: 16px;
-  }
-  .filter-bar > div { display: flex; flex-direction: column; gap: 3px; }
-  .filter-bar input, .filter-bar select { min-width: 140px; }
+  .stats-row { display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+  .stat-box { flex:1; min-width:120px; background:var(--white); border:1px solid var(--border); border-radius:8px; padding:14px 16px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .stat-box .num { font-size:1.8rem; font-weight:700; }
+  .stat-box .lbl { font-size:.78rem; color:var(--gray); margin-top:2px; }
+  .stat-box.pending .num  { color:#d97706; }
+  .stat-box.done .num     { color:var(--green); }
+  .stat-box.total .num    { color:var(--blue); }
+  .stat-box.cancelled .num{ color:var(--red); }
 
-  /* ── STATS ── */
-  .stats-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-  .stat-box {
-    flex: 1; min-width: 120px; background: var(--white);
-    border: 1px solid var(--border); border-radius: 8px;
-    padding: 14px 16px; text-align: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,.05);
-  }
-  .stat-box .num { font-size: 1.8rem; font-weight: 700; }
-  .stat-box .lbl { font-size: .78rem; color: var(--gray); margin-top: 2px; }
-  .stat-box.pending .num { color: #d97706; }
-  .stat-box.done .num { color: var(--green); }
-  .stat-box.total .num { color: var(--blue); }
-  .stat-box.cancelled .num { color: var(--red); }
+  .tbl-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.88rem; }
+  th { background:#1e3a5f; color:#fff; padding:10px 12px; text-align:left; font-size:.8rem; text-transform:uppercase; letter-spacing:.4px; }
+  td { padding:9px 12px; border-bottom:1px solid #e5e7eb; vertical-align:middle; }
+  tr:hover td { background:#f9fafb; }
+  tr:last-child td { border-bottom:none; }
 
-  /* ── TABLE ── */
-  .tbl-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-  th {
-    background: #1e3a5f; color: #fff;
-    padding: 10px 12px; text-align: left;
-    font-size: .8rem; text-transform: uppercase; letter-spacing: .4px;
-  }
-  td { padding: 9px 12px; border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
-  tr:hover td { background: #f9fafb; }
-  tr:last-child td { border-bottom: none; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.75rem; font-weight:700; text-transform:uppercase; }
+  .badge.Pending    { background:#fef3c7; color:#92400e; }
+  .badge.Picked\ Up { background:#d1fae5; color:#065f46; }
+  .badge.Cancelled  { background:#fee2e2; color:#991b1b; }
 
-  /* status badges */
-  .badge {
-    display: inline-block; padding: 3px 10px; border-radius: 20px;
-    font-size: .75rem; font-weight: 700; text-transform: uppercase;
-  }
-  .badge.Pending   { background: #fef3c7; color: #92400e; }
-  .badge.Picked\ Up { background: #d1fae5; color: #065f46; }
-  .badge.Cancelled { background: #fee2e2; color: #991b1b; }
+  .act-btn { padding:4px 10px; border:none; border-radius:4px; font-size:.78rem; font-weight:600; cursor:pointer; margin:2px; }
+  .act-btn.pickup { background:#d1fae5; color:#065f46; }
+  .act-btn.cancel { background:#fee2e2; color:#991b1b; }
+  .act-btn.revert { background:#e5e7eb; color:#6b7280; }
 
-  .act-btn {
-    padding: 4px 10px; border: none; border-radius: 4px;
-    font-size: .78rem; font-weight: 600; cursor: pointer; margin: 2px;
-  }
-  .act-btn.pickup  { background: #d1fae5; color: #065f46; }
-  .act-btn.cancel  { background: #fee2e2; color: #991b1b; }
-  .act-btn.delete  { background: #e5e7eb; color: #6b7280; }
-
-  /* ── PRINT ── */
   @media print {
-    header, .tabs, .filter-bar, .stats-row, .btn-row,
-    .act-btn, .no-print { display: none !important; }
-    body { background: #fff; }
-    .card { box-shadow: none; border: none; padding: 0; }
-    table { font-size: .82rem; }
-    th { background: #1e3a5f !important; -webkit-print-color-adjust: exact; }
-    .badge { border: 1px solid #999; }
-    .print-header { display: block !important; text-align: center; margin-bottom: 14px; }
-    .print-header h2 { font-size: 1.3rem; }
-    .print-header p  { font-size: .85rem; color: #555; }
+    header,.tabs,.filter-bar,.stats-row,.btn-row,.act-btn,.no-print { display:none !important; }
+    body { background:#fff; }
+    .card { box-shadow:none; border:none; padding:0; }
+    table { font-size:.82rem; }
+    th { background:#1e3a5f !important; -webkit-print-color-adjust:exact; }
+    .badge { border:1px solid #999; }
+    .print-header { display:block !important; text-align:center; margin-bottom:14px; }
   }
-  .print-header { display: none; }
+  .print-header { display:none; }
 
-  /* ── SPINNER ── */
-  .spinner {
-    display: inline-block; width: 18px; height: 18px;
-    border: 3px solid #ccc; border-top-color: var(--blue);
-    border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-msg { text-align: center; padding: 30px; color: var(--gray); }
-  .empty-msg   { text-align: center; padding: 30px; color: var(--gray); font-style: italic; }
+  .spinner { display:inline-block; width:18px; height:18px; border:3px solid #ccc; border-top-color:var(--blue); border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-msg { text-align:center; padding:30px; color:var(--gray); }
+  .empty-msg   { text-align:center; padding:30px; color:var(--gray); font-style:italic; }
 
-  /* ── LOT PILLS ── */
-  .lot-pills { display: flex; flex-wrap: wrap; gap: 4px; }
-  .lot-pill {
-    display: flex; align-items: center; gap: 4px;
-    background: #e0e7ff; border-radius: 4px; padding: 2px 8px;
-    font-size: .82rem; cursor: default;
-  }
-  .lot-pill .rm { cursor: pointer; color: #6366f1; font-weight: 700; }
-  #lot-input-row { display: flex; gap: 8px; margin-top: 8px; }
-  #lot-input-row input { flex: 1; }
+  /* lot pills */
+  .lot-pills { display:flex; flex-wrap:wrap; gap:4px; min-height:28px; }
+  .lot-pill { display:flex; align-items:center; gap:4px; background:#e0e7ff; border-radius:4px; padding:2px 8px; font-size:.82rem; }
+  .lot-pill .rm { cursor:pointer; color:#6366f1; font-weight:700; }
+  .lot-input-row { display:flex; gap:8px; margin-top:8px; position:relative; }
+  .lot-input-row input { flex:1; }
+
+  /* autocomplete dropdown */
+  .ac-list { position:absolute; top:100%; left:0; right:60px; background:#fff; border:1px solid var(--border); border-radius:0 0 6px 6px; max-height:200px; overflow-y:auto; z-index:100; box-shadow:0 4px 12px rgba(0,0,0,.1); display:none; }
+  .ac-item { padding:8px 12px; cursor:pointer; font-size:.88rem; border-bottom:1px solid #f3f4f6; }
+  .ac-item:hover, .ac-item.selected { background:#eff6ff; color:var(--blue); }
+  .ac-item:last-child { border-bottom:none; }
+  .data-badge { font-size:.7rem; background:#dbeafe; color:#1e40af; padding:1px 6px; border-radius:10px; margin-left:4px; }
 </style>
 </head>
 <body>
@@ -199,13 +113,14 @@
 </header>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('new')">➕ New Request</button>
-  <button class="tab-btn" onclick="switchTab('history')">📋 History & Tracking</button>
-  <button class="tab-btn" onclick="switchTab('today')">🖨️ Today's List</button>
+  <button class="tab-btn active" onclick="switchTab('new',this)">➕ New Request</button>
+  <button class="tab-btn" onclick="switchTab('history',this)">📋 History & Tracking</button>
+  <button class="tab-btn" onclick="switchTab('today',this)">🖨️ Today's List</button>
 </div>
 
-<!-- ═══════════════════════════════ NEW REQUEST ═══════════════════════════════ -->
 <div class="container">
+
+<!-- ── NEW REQUEST ── -->
 <div id="tab-new" class="panel active">
   <div class="card">
     <h2>Submit Pick Up Request</h2>
@@ -221,33 +136,32 @@
           <label>Knitter *</label>
           <select id="f-knitter" required>
             <option value="">— Select Knitter —</option>
-            <option>BONATEX</option>
-            <option>WE</option>
-            <option>STYLE KNIT</option>
-            <option>LAFAYETTE</option>
-            <option>LAGUNA</option>
-            <option>SAS</option>
-            <option>SHAITEX</option>
-            <option>WALNUT</option>
-            <option>HANTEX</option>
-            <option>CAPITAL</option>
-            <option>DRIFTER</option>
-            <option>CONTINENTAL KNITTING</option>
-            <option>DELTA PACIFIC</option>
+            <option>BONATEX</option><option>WE</option><option>STYLE KNIT</option>
+            <option>LAFAYETTE</option><option>LAGUNA</option><option>SAS</option>
+            <option>SHAITEX</option><option>WALNUT</option><option>HANTEX</option>
+            <option>CAPITAL</option><option>DRIFTER</option>
+            <option>CONTINENTAL KNITTING</option><option>DELTA PACIFIC</option>
             <option>OTHER</option>
           </select>
         </div>
 
         <div>
-          <label>Customer Code *</label>
+          <label>Customer Code * <span class="data-badge">Live from Dye Server</span></label>
           <select id="f-customer" required>
             <option value="">— Select Customer —</option>
-            <option>ARX</option><option>CAG</option><option>CAV</option>
-            <option>CON</option><option>DAY</option><option>DBA</option>
-            <option>DUC</option><option>EAG</option><option>ELL</option>
-            <option>ENA</option><option>HAP</option><option>INT</option>
-            <option>JCT</option><option>LAF</option><option>LND</option>
-            <option>SAS</option><option>OTHER</option>
+            <option>ACU</option><option>ARX</option><option>BEN</option><option>BRK</option>
+            <option>CAG</option><option>CAV</option><option>CNF</option><option>CON</option>
+            <option>CRJ</option><option>CRR</option><option>DAY</option><option>DBA</option>
+            <option>DEL</option><option>DUC</option><option>EAG</option><option>EHL</option>
+            <option>ELL</option><option>ENA</option><option>FAB</option><option>FNP</option>
+            <option>GTA</option><option>HAP</option><option>HLT</option><option>INT</option>
+            <option>JCT</option><option>JNY</option><option>KOO</option><option>LAA</option>
+            <option>LAB</option><option>LAF</option><option>LAG</option><option>LAK</option>
+            <option>LAV</option><option>LND</option><option>ONE</option><option>PAT</option>
+            <option>PRZ</option><option>R7K</option><option>ROY</option><option>SAS</option>
+            <option>SET</option><option>SHM</option><option>SIL</option><option>SOC</option>
+            <option>SUP</option><option>WBM</option><option>WET</option><option>WEV</option>
+            <option>OTHER</option>
           </select>
         </div>
         <div>
@@ -256,20 +170,20 @@
         </div>
 
         <div class="full">
-          <label>Lot Numbers</label>
+          <label>Lot Numbers <span class="data-badge">Autocomplete from Dye Server BOL data</span></label>
           <div id="lot-pills-container" class="lot-pills"></div>
-          <div id="lot-input-row">
-            <input type="text" id="lot-input" placeholder="Type a lot # and press Add or Enter" />
-            <button type="button" class="btn btn-gray" onclick="addLot()">Add</button>
+          <div class="lot-input-row">
+            <input type="text" id="lot-input" placeholder="Type a lot # — autocomplete from BOL records" autocomplete="off" oninput="onLotInput()" onkeydown="onLotKey(event)" />
+            <button type="button" class="btn btn-gray" onclick="addLotFromInput()">Add</button>
+            <div class="ac-list" id="ac-list"></div>
           </div>
-          <small style="color:var(--gray);font-size:.78rem;">Add each lot number individually. Leave blank if unknown.</small>
+          <small style="color:var(--gray);font-size:.78rem;">Type to search lots from last 30 days of BOL records. Press Enter or click Add.</small>
         </div>
 
         <div class="full">
           <label>Notes / Special Instructions</label>
           <textarea id="f-notes" placeholder="e.g. OVERDYE, RUSH, hold for inspection…"></textarea>
         </div>
-
       </div>
       <div class="btn-row">
         <button type="submit" class="btn btn-primary" id="submit-btn">Submit Request</button>
@@ -279,15 +193,14 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════ HISTORY ═══════════════════════════════ -->
+<!-- ── HISTORY ── -->
 <div id="tab-history" class="panel">
-  <div class="stats-row" id="stats-row">
+  <div class="stats-row">
     <div class="stat-box total"><div class="num" id="s-total">—</div><div class="lbl">Total</div></div>
     <div class="stat-box pending"><div class="num" id="s-pending">—</div><div class="lbl">Pending</div></div>
     <div class="stat-box done"><div class="num" id="s-done">—</div><div class="lbl">Picked Up</div></div>
     <div class="stat-box cancelled"><div class="num" id="s-cancelled">—</div><div class="lbl">Cancelled</div></div>
   </div>
-
   <div class="card">
     <h2>All Requests</h2>
     <div class="filter-bar">
@@ -295,10 +208,7 @@
       <div><label>To Date</label><input type="date" id="h-to" onchange="loadHistory()"/></div>
       <div><label>Status</label>
         <select id="h-status" onchange="loadHistory()">
-          <option value="">All</option>
-          <option>Pending</option>
-          <option>Picked Up</option>
-          <option>Cancelled</option>
+          <option value="">All</option><option>Pending</option><option>Picked Up</option><option>Cancelled</option>
         </select>
       </div>
       <div><label>Knitter</label>
@@ -314,26 +224,15 @@
       <div><label>Customer</label>
         <input type="text" id="h-customer" placeholder="e.g. JCT" oninput="loadHistory()" style="width:90px"/>
       </div>
-      <div style="margin-top:auto">
-        <button class="btn btn-gray" onclick="clearFilters()">Reset</button>
-      </div>
+      <div style="margin-top:auto"><button class="btn btn-gray" onclick="clearFilters()">Reset</button></div>
     </div>
-
     <div class="tbl-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Date</th>
-            <th>Knitter</th>
-            <th>Customer</th>
-            <th>Qty</th>
-            <th>Lot Numbers</th>
-            <th>Status</th>
-            <th>Notes</th>
-            <th class="no-print">Actions</th>
-          </tr>
-        </thead>
+        <thead><tr>
+          <th>#</th><th>Date</th><th>Knitter</th><th>Customer</th>
+          <th>Qty</th><th>Lot Numbers</th><th>Status</th><th>Notes</th>
+          <th class="no-print">Actions</th>
+        </tr></thead>
         <tbody id="history-body">
           <tr><td colspan="9" class="loading-msg"><span class="spinner"></span> Loading…</td></tr>
         </tbody>
@@ -342,7 +241,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════ TODAY'S LIST ═══════════════════════════════ -->
+<!-- ── TODAY'S LIST ── -->
 <div id="tab-today" class="panel">
   <div class="card">
     <div class="print-header">
@@ -350,239 +249,219 @@
       <p id="print-date-label"></p>
     </div>
     <h2 id="today-card-title">Today's Pick Up List</h2>
-    <div class="btn-row no-print" style="margin-bottom:14px; margin-top:0">
+    <div class="btn-row no-print" style="margin-bottom:14px;margin-top:0">
       <button class="btn btn-print" onclick="window.print()">🖨️ Print Today's List</button>
       <button class="btn btn-gray" onclick="loadToday()">↺ Refresh</button>
     </div>
-
     <div class="tbl-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Knitter</th>
-            <th>Customer</th>
-            <th>Qty</th>
-            <th>Lot Numbers</th>
-            <th>Status</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
+        <thead><tr>
+          <th>#</th><th>Knitter</th><th>Customer</th><th>Qty</th>
+          <th>Lot Numbers</th><th>Status</th><th>Notes</th>
+        </tr></thead>
         <tbody id="today-body">
           <tr><td colspan="7" class="loading-msg"><span class="spinner"></span> Loading…</td></tr>
         </tbody>
       </table>
     </div>
-    <p id="today-total" style="text-align:right; font-weight:700; margin-top:10px; color:#1e3a5f;"></p>
+    <p id="today-total" style="text-align:right;font-weight:700;margin-top:10px;color:#1e3a5f;"></p>
   </div>
 </div>
 
 </div><!-- /container -->
 
-<!-- ═══════════════════════════════ SCRIPT ═══════════════════════════════ -->
 <script>
+// ── CONFIG ─────────────────────────────────────────────────
 const SUPABASE_URL = 'https://cgsmzkafagnmsuzzkfnv.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnc216a2FmYWdubXN1enprZm52Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxODQ0NjEsImV4cCI6MjA5MTc2MDQ2MX0.ozzeb5ALz4Fz6w5kYmbvhXlsbtyS-CHILFrz8AmTZ_E';
 const TABLE = 'greige_pickup_requests';
 
-let lots = [];
+// ── LIVE LOT DATA from Dye Server BOL records (last 30 days, synced 2026-04-14) ──
+const BOL_LOTS = ["A-01927","A-01928","A-01929","A-01930","A-01931","A-01940","A-01941","A-01943","A-01944","A-01946","A-01947","A-01950","A-01951","A-01952","ACU136703HS","ARXAT-04559HS","ARXAT-04561HS","ARXAT-04562HS","ARXAT-04564AHS","ARXAT-04577","ARXAT-04577A","ARXAT-04578","ARXAT-04579","ARXAT-04581","ARXAT-04582","ARXAT-04583","ARXAT-04584","ARXAT-04585","ARXAT-04586","ARXAT-04587","ARXAT-04588HS","ARXAT-04598","ARXAT-04600","ARXAT-04601HS","ARXAT-04611","BRK27840","BRK27840A","BRK27841","BRK27842","BRK27843","BRK27844","BRK27845","BRK27845-A","BRK27861","BRK27861-A","BRK27861-B","BRK27861-C","BRK27862","BRK27863","BRK27864","BRK27865","BRK27866","BRK27866-A","BRK27866-B","BT184574","BT184575","BT184576","BT184577","BT184578","BT184579","BT184724","BT184727","BT184754","BT184755","BT184756","BT184757","BT95523","BT95552","CAG136433FL","CAG136434FL","CAG136579FL","CAG136580FL","CAG136590FL","CAG136670HS","CAG136671HS","CAG136672HS","CAG136673HS","CAG136674HS","CAV135749","CAV135753TA","CAV135943","CAV135944","CNF-269FL","CNF-270FL","CNF-271FL","CNF-272FL","CNF-273FL","CNF-274","CNF-275","CON136495","CRJ26823","CRR95181","CRR95182","CRR95281","CRR95282","CRR95283","CRR95284","CRR95301","CRR95302","CRR95334","CRR95335","CRR95441","CRR95470","CRR95493","CRR95508","CRR95509","DAYK-21481AFL","DAYK-22230FL","DAYK-22231FL","DAYK-22679","DAYK-22691","DAYK-22693","DAYK-22694","DAYK-22695","DAYK-22696","DAYK-22697","DAYK-22697A","DAYK-22698","DAYK-22699","DAYK-22700","DAYK-22701","DAYK-22702","DAYK-22703","DAYK-22704","DAYK-22706","DAYK-22707","DAYK-22708","DAYK-22709","DAYK-22710","DAYK-22711","DAYK-22714","DAYK-22715","DAYK-22719","DEL133158","DEL133187","DEL133190","DEL133190-1","DEL133195","DEL133196","DEL133198","DEL133199","DEL133202","DEL133203","DEL133204","DEL133205","DEL133206","DEL133207","DEL133210","DEL133213","DEL133214","DEL133217","DEL133219","DEL133220","DEL133222","DEL133223","DEL133225","DEL133226","DEL133228","DEL133231","DEL133232","DEL133234","DEL133239","DEL133240","DEL133241","DEL133242","DEL133243","DEL133244","DEL133250","DEL133254","DEL133255","DEL40505","DEL40506","DEL40507","DEL40508","DEL57154","DEL57155","DEL57159","DEL57160","DEL57162","DEL57163","DEL57168","DEL57169","DEL57170","DEL57171","DEL57172","DEL57173","DEL990626","DEL990629","DEL990630","DEL990633","DEL990636","DEL990637","DEL990638","DEL990646","DEL990647","DEL990649","DUC58521R","DUC58584","DUC58585","DUC58586","DUC58587","DUC58588","DUC58597","DUC58604","DUC58605","DUC58606","DUC58607","DUC58609","DUC58610","DUC58611","DUC58612","DUC58613","DUC58615","DUC58617","DUC58618","DUC58619","DUC58620","DUC58621","DUC58623","DUC58624","DUC58625","DUC58626","DUC58630","DUC58631","DUC58632","DUC58636","DUC58636T","DUC58639","DUC58641","DUC58642","DUC58651","DUC58652","DUC58659","DUC58664","DUC58669","DUC58670","DUC58671","DUC58672","DUC58673","DUC58674","DUC58675","DUC58676","DUC58677","DUC58678","DUC58679","DUC58680","DUC58681","DUC58682","DUC58683","DUC58684","DUC58685","DUC58686","DUC58687","DUC58688","DUC58689","DUC58690","DUC58691","DUC58692","DUC58693","DUC58694","DUC58695","DUC58696","DUC58697","DUC58698","DUC58700","DUC58720","DUC58721","DUC58722","DUC58731","DUC58732","DUC58737","DUC74073","DUC74074","DUC74075","DUC74076","DUC74077","DUC74078","DUC74079","DUC74080","DUC74081","DUC74082","DUC74083","DUC74084","DUC74085","DUC74086","DUC74087","DUC74088","DUC74089","DUC74090","DUC74091","DUC74092","DUC74093","DUC74094","DUC74095","DUC74097","DUC74115","DUC74119T","EAG136425ST","EAG136426ST","EAG136427ST","EAG136428ST","EAG136445STHS","EAG136446STHS","EAG136474STHS","EAG136475STHS","EAG136476STHS","EAG136524STHS","EAG136525HS","EAG136543AST","EAG136543STHS","EAG136544STHS","EHLEL-00026","EHLEL-00027","EHLEL-00028","ELL-TEXT","ELL50798-1","ELL50798-11","ELL50798-12","ELL50798-13","ELL50798-13S","ELL50798-1R","ELL50798-1S","ELL50798-2","ELL50798-29","ELL50798-2R","ELL50798-3","ELL50798-30","ELL50798-31","ELL50798-32","ELL50798-33","ELL50798-34","ELL50798-3R","ELL50798-7","ELL50798-8","ELL50798-9","ELL50798-9S","ELL50798T","ELL50798T11","ELL50798T3","ELL50798TA29","ELL50798TA32","ELL50798TR","ELL72194RR","ELL72745","ELL72746","ELL72747","ELL72748","ELL72749","ELL72750T","ELL72865FL","ELL72867FL","ELL72868FL","ELL72872S","ELL72874FL","ELL72890R","ELL72891","ELL72892T","ELL72894T","ELL72942FL","ELL72944FL","ELL72946FL","ELL72951FL","ELL72953FL","ELL72953S","ELL72955FL","ELL72956FL","ELL72957FL","ELL72958FL","ELL72959-1FL","ELL72960-1FL","ELL72961-1FL","ELL72962T","ELL72963T","ELL72964T","ELL72995","ELL73000","ELL73004","ELL73005","ELL73006","ELL73007","ELL73129SAM","ELL73131FL","ELL73132FL","ELL73133FL","ELL73134FL","ELL73135FL","ELL73136FL","ELL73137FL","ELL73138FL","ELL73139FL","ELL73141FL","ELL73142FL","ELL73144FL","ELL73145FL","ELL73146FL","ELL73147FL","ELL73148FL","ELL73149FL","ELL73168T","ELL73644","ELL73765FL","ELL73766FL","ELL73767FL","ELL73768FL","ELL73769FL","ELL73770FL","ELL73771FL","ELL73772FL","ELL73773FL","ELL73774FL","ELL73775FL","ELL73776FL","ELL73777FL","ELL73778FL","ELL73779FL","ELL73780T","ELL73781T","ELL73784T","ELL73900FL","ELL73901FL","ELL73902FL","ELL73903FL","ELL73904FL","ELL74213","ELL74215","ELL74250","ELL74251","ELL74252","ELL74253","ELL74254","ELL74255","ELL74256","ELL74257","ELL74258","ELL74259","ELL74260","ELL74261","ELL74262","ELL74263","ELL74264","ELL74265","ELL74266","ELL74267","ELL74268","ELL74269","ELL74270","ELL74271","ELL74272","ELL74273T","ELL74274T","ELL74425","ELL74426","ELL74427","ELL74428","ELL74429","ELL74430","ELL74431","ELL74432","ELL74433","ELL74493","ELL74494","ELL74503","ELL74504","ELL74505","ELL74506","ELL74507","ELL74508","ELL74511","ELL74512","ELL74515","ELL74516","ELL74517","ELL74520","ELL74521","ELL74522","ELL74524","ELL74526-10","ELL74526-2","ELL74526-3","ELL74526-4","ELL74526-48","ELL74526-49","ELL74526-4S","ELL74526-5","ELL74526-50","ELL74526-52","ELL74526-6","ELL74526-69","ELL74526-7","ELL74526-74","ELL74526-75","ELL74526-8","ELL74526-80","ELL74526-81","ELL74526-9","ELL74527-2T","ELL74528-5T","ELL74529-9T","ELL74530-49T","ELL74533-80T","ELL74534-03T","ELL74535-06T","ELL74537-20T","ELL74538-69T","ELL74627-21","ELL74628-24T","ELL74632","ELL74633","ELL74634","ELL74635","ELL74636","ELL74637","ELL74638","ELL74639","ELL74640","ELL74641","ELL74644","ELL74645","ELL74646","ELL74647","EN-04182FL","EN-10837D","EN-10935FL","EN-10938FL","EN-10941FL","EN-10943FL","EN-10945FL","EN-10946FL","EN-10947FL","EN-10948FL","EN-10949FL","EN-10950FL","EN-10951FL","EN-10952FL","EN-10953FL","EN-10954FL","EN-10955FL","EN-10956FL","EN-10957FL","EN-10958FL","EN-10959FL","EN-10960FL","EN-10961FL","EN-10961OT","EN-10962FL","EN-10963FL","EN-10964FL","EN-10971","EN-10974A","EN-10974B","EN-10974C","EN-10975","EN-10977HS","EN-10980","EN-10990FL","EN-10991","EN-10991THS","EN-10992","ENB184579","FAB50053W","FAB50054W","FAB50055WT","FABAZ50018W","FABAZ50019W","FNPFP-00001HS","FNPFP-00002HS","FNPFP-00003HS","FNPFP-00004HS","FNPFP-00005HS","GTA105","GTA105A","GTA135928FL","GTA136151T","GTA136444FL","GTA136496","GTA136497","GTA136498","GTA136499","GTA136514T","GTA136514T1","GTA136515","GTA136516","GTA136545","GTA136546","GTA136547","GTAGT-00631HSFL","GTAGT-00638HS","GTAGT-00639HS","GTAGT-00641T","GTAGT-10589A","H-91896HS","HLT136591","HLT136591S","HLT136592","HLT136593","HLT136594","HLT136595","INT-11023","INT-11024","INT-11025","INT-11026","INT-11039","INT-11040","INT-11041","INT-11042","INT-11043","INT-11044","INT-11045","INT-11046","INT-11047AHS","INT-11047HS","INT-11048AHS","INT-11048HS","INT-11060HS","INT-11112HS","INT-11113HS","INT-11125AR","INT-11125R","INT-11130B","INT-11174FL","INT-11198HS","INT-11199HS","INT-11200HS","INT-11206HS","INT-11207HS","INT-11211HS","INT-11217HS","INT-11218HS","INT-11219HS","INT-11220HS","INT-11221AHS","INT-11221HS","INT-11222AHS","INT-11222HS","INT-11231AHS","INT-11231HS","INT-11232","INT-11233","INT-11238HS","INT-11239HS","INT-11240HS","INT-11241HS","INT-11252HS","INT-11253HS","INT-11254HS","INT-11255HS","INT-11256HS","INT-11257HS","INT-11264HS","INT-11265HS","INT-11270FL","INT-11275AHS","INT-11275HS","INT-11276","INT-11277","INT-11278","INT-11279AHS","INT-11279HS","INT-11283","INT-11284","INT-11285","INT-11286","INT-11287","INT-11288AHS","INT-11288HS","INT-11290","INT-11291","INT-11292","INT-11295","INT-11296","INT-11297","INT-11298","INT-11299","INT-11300","INT-11301","INT-11302","INT-11306HS","INT-11307AHS","INT-11307HS","INT-11312","INT-11313","INT-11314","INT-11315","INT-11315A","INT-11316","INT-11316A","INT-11317","INT-11323","INT-11334FL","INT-11335","INT-11336HS","INT-11337","INT-11343","INT136908","INTIN-11209AHS","INTIN-82058","INTIN-82059","INTIN-82060","INTIN-82061","INTIN-82062","INTIN-82063","INTIN-82064","INTIN-82065","INTIN-82076","INTIN-82087HS","INTIN-82088HS","INTIN-82143HS","INTIN-82146","INTIN-82147","INTIN-82153","J-00269","J-00270","J-00271","J-00272","J-00273","JC-7652FL","JCC-10158HS","JCC-10159HS","JCC-10160HS","JCC-10161HS","JCC-10162HS","JCC-10163HS","JCC-10164","JCC-10165","JCC-10166HS","JCC-10167HS","JCC-10168HS","JCC-10169HS","JCC-10170HS","JNY95001FL","JNY95001RIB","JNY95002FL","JNY95002RIB","JNY95003FL","JNY95003RIB","JNY95014FL","JNY95014RIB","JNY95015FL","JNY95015RIB","JNY95068FL","JNY95068RIB","JNY95090RIB","JNY95091FL","JNY95091RIB","JNY95092FL","JNY95092RIB","JNY95093FL","JNY95093RIB","JNY95286RIB","JNY95510RIB","KOO25050005FHS","KOO25060015HS","KOO25060021HS","KOO25090013HS","KOO25090014HS","KOO25090015HS","KOO25090016HS","KOO25090017HS","KOO25090018HS","KOO25090021HS","KOO25090022HS","KOO25090034","KOO25090035A","KOO25090037HS","KOO25090038HS","KOO25090039HS","KOO25090040HS","KOO25090041HS","KOO25090042HS","KOO25090043HS","KOO25090044HS","KOO25090045HS","KOO26010026HS","KOO26010027HS","KOO26010028HS","KOO26020022","KOO26020023","KOO26020024","LAA26475FL","LAA26493FL","LAB-01117HS","LAB-01119AHS","LAB-01119HS","LAB-01120HS","LAB-01122HS","LAB-01123HS","LAB-01124HS","LAB-01125HS","LAB-01126HS","LAB-01127HS","LAB-01128HS","LAF27878","LAF27883HS","LAG20231-1T","LAG20231-2T","LAG20231-3T","LAG20231-4","LAG20231-5T","LAG20231-5T1","LAG20231-6T","LAG20231-7T","LAG20231-8T","LAG43339FL","LAG43370F","LAG43403FL","LAG43469FL","LAG43470FL","LAG43471FL","LAG43472FL","LAG43473FL","LAG43474FL","LAG43475FL","LAG43476FL","LAG43477FL","LAG43478FL","LAG43480FL","LAG43481FL","LAG43483FL","LAG43484FL","LAG43485FL","LAG43486FL","LAG43487FL","LAG43488FL","LAG43489FL","LAG43490FL","LAG43491FL","LAG43492FL","LAG43553HS","LAG43554HS","LAG43557T","LAG43558FL","LAG43558FLR","LAG43559FL","LAG43559FLR","LAG43603FL","LAG43604FL","LAG43665FL","LAG43666FL","LAG43666FLR","LAG43667FL","LAG43668FL","LAG43669FL","LAG43670FL","LAG43671FL","LAG43672FL","LAG43673FL","LAG43674FL","LAG43675FL","LAG43676FL","LAG43677FL","LAG43678FL","LAG43679FL","LAG43679FLS","LAG43680FL","LAG43681FL","LAG43682FL","LAG43683FL","LAG43684FL","LAG43685FL","LAG43686FL","LAG43687FL","LAG43688FL","LAG43690FL","LAG43691FL","LAG43692FL","LAG43693FL","LAG43774FL","LAG43774FLR","LAG43775FL","LAG43776T","LAG43777T","LAG43861FL","LAG43862FL","LAG43863FL","LAG43864FL","LAG43865FL","LAG43866FL","LAG43867FL","LAG43868FL","LAG43869FL","LAG43870FL","LAG95602FL","LAG95603FL","LAG95604FL","LAG95606FL","LAG95672FL","LAG95673FL","LAG95699FL","LAG95745FL","LAG95773FL","LAG95784FL","LAG95810FL","LAG95811FL","LAG95813FL","LAK-22012C","LAK-22012CA","LAK-22016RIB","LAK-22027","LAK-22027RIB","LAK-22028","LAK-22028RIB","LAK-22029","LAK-22029RIB","LAK-22030","LAK-22030RIB","LAK-22043AHS","LAK-22043HS","LAK26479-A","LAV136615","LAV136616","LAV136617","LAV136618","LAV136619","LAV136620","LB-00353","LB-00358","LB-00361","LB-00363B","LB-00363C","LB-00364","LB-00366","LNDLD-01042","ONE95112FL","ONE95173FL","ONE95180FL","ONE95190FL","ONE95235","ONE95235A","ONE95235B","ONE95235C","ONEOT-04931","OT-04888","OT-04889","OT-04890","OT-04891","OT-04892","OT-04893","OT-04894","OT-04895","OT-04896","OT-04897","OT-04898","OT-04899","OT-04900","OT-04901","OT-04902","OT-04903","OT-04904","OT-04905","OT-04906","OT-04907","OT-04908","OT-04909","OT-04910","OT-04911","OT-04912","OT-04913","OT-04914","OT-04915","OT-04916","OT-04917","OT-04918","OT-04918A","OT-04919","OT-04920","OT-04921","OT-04925HS","OT-04926HS","OT-04927AHS","OT-04927HS","OT-04928HS","OT-04929HS","OT-04930AHS","OT-04932","OT-04933","OT-04935A","OT-04936AHS","OT-04937","OT-04938","OT-04939","OT-04940","OT-50002","PAT40493FL","PAT40494","PAT40495","PM-0001","PRZ168241","R7K95097HS","R7K95098","ROY1000T","ROY1003","ROY141348","ROY141348T","ROY141349","ROY141349T","ROY141683","ROY141683T","ROY141685","ROY141685T","ROY141686","ROY141686T","ROY141687","ROY141687T","ROY141688","ROY141688T","ROY141730","ROY141730T","ROY141731","ROY141731T","ROY141732","ROY141732T","ROY141733","ROY141733T","ROY141734","ROY141734T","ROY141735","ROY141735T","ROY141736","ROY141736T","ROY141737","ROY141737T","ROY141745","ROY141745T","ROY141746","ROY141746T","ROY141827","ROY141827T","ROY141881","ROY141881T","ROY141882","ROY141882T","ROY142037","ROY142037T","ROY78101","ROY78101T","ROY78200T","ROY78200TUB","ROY94845","ROY94846","ROY94849T","ROY94850T","ROY94879","ROY94884T","ROY94955","ROY94958","ROY94960T","ROY94963T","ROY95022","ROY95025T","ROY95027","ROY95028","ROY95031T","ROY95032T","ROY95122","ROY95123","ROY95124","ROY95131T","ROY95132T","ROY95133T","ROY95212","ROY95213","ROY95214","ROY95216T","ROY95217T","ROY95218T","ROY95459","ROY95460","ROY95461","ROY95462T","ROY95463T","ROY95464T","ROY95471","ROY95530","ROY95531","ROY95532","ROY95535T","ROY95536T","ROY95537T","ROY95719","ROY95720","ROY95727T","ROY95728T","SAS184206T","SAS184376FL","SAS184388FL","SAS184391FL","SAS184393FL","SAS184394FL","SAS184400FL","SAS184401FL","SAS184404FL","SAS184408FL","SAS184409FL","SAS184410FL","SAS184411FL","SAS184412FL","SAS184413FL","SAS184414FL","SAS184415FL","SAS184416FL","SAS184417FL","SAS184418FL","SAS184419FL","SAS184422FL","SAS184423FL","SAS184424FL","SAS184425FL","SAS184426FL","SAS184427FL","SAS184428FL","SAS184429FL","SAS184499HS","SAS184501HS","SAS184560HS","SAS184561HS","SAS184581FLSH","SAS184614","SAS184635FL","SAS184636FL","SAS184637FL","SAS184638FL","SAS184640FL","SAS184641FL","SAS184642FL","SAS184643FL","SAS184703FL","SAS184704FL","SAS184705FL","SAS184706FL","SAS184707FL","SAS184708FL","SAS184709FL","SAS184710FL","SAS184712FL","SAS184713FL","SAS184714FL","SAS184715FL","SAS184719T","SAS184773HS","SAS184774HS","SAS184775HS","SCB-00262FL","SCB-00263FL","SCB-00264FL","SCB-00265FL","SCB-00266FL","SCB-00267FL","SCB-00268FL","SCB-00269FL","SCB-00270FL","SCB-00271FL","SCB-00272","SCB-00273HS","SCB-00274HS","SCB-00275HS","SCB-00276FL","SCB-00277FL","SCB-00278FL","SCB-00279FL","SCB-00280FL","SCB-00281FL","SCB-00282FL","SCB-00283FL","SCB-00284FL","SCB-00285FL","SCB-00286FL","SCB-00287FL","SCB-00288FL","SCB-00289FL","SCB-00290FL","SCB-00291FL","SET129015AHS","SET129015HS","SET133128HS","SET133130HS","SET134902AHS","SET134903HS","SET134904AHS","SET134904HS","SET134905HS","SET134906HS","SET134908AHS","SET134908HS","SET135930HS","SET135931HS","SET437335AHS","SHM13463","SHMSR-00051J","SHMSR-00066F","SUPSL-56929","SUPSL-56930","SUPSL-56933","SUPSL-56934","SUPSL-56935","SUPSL-56936","SUPSL-56937","SUPSL-56938","SUPSL-56939","SV-56873","SV-56874","SV-56874A","SV-56875","T-12332B","T-12334","T-15949HS","T-15950HS","T-15951HS","T-15951Z","T-15962AHS","T-15962HS","T-15966HS","T-15967HS","T-15968HS","T-15972","T-15973HS","T-15974HS","T-15975","T-15976","T-15977","T-15978","T-15979","T-15980HS","T-15981HS","T-15982HS","T-15983HS","T-15984AHS","T-15984HS","T-15987","T-15988","T-15989","T-15990","T-15991","T-15992","T-15993","T-15994","T-15995AHS","T-15995HS","T-15996HS","T-15997HS","T-15998HS","T-15999HS","T-16000HS","T-16001HS","T-16002HS","T-16003HS","T-16004HS","T-16005","T-16006","T-16007","T-16008HS","T-16009","T-16010","T-16018HS","WBM40510FL","WBM40510THS","WBM40511FL","WBM40514","WBM40515","WBM40516","WBM40517","WBM40518","WBM40519","WE-2001","WEVB-07429","WEVB-07430","WEVB-07431","WEVB-07432","WEVB-07437"];
 
-function today() { return new Date().toISOString().slice(0, 10); }
-function fmt(dateStr) {
-  if (!dateStr) return '';
-  const [y,m,d] = dateStr.split('-');
-  return `${m}/${d}/${y}`;
-}
-function api(path, opts = {}) {
-  const headers = {
-    'apikey': SUPABASE_KEY,
-    'Authorization': 'Bearer ' + SUPABASE_KEY,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=representation',
-    ...opts.headers
-  };
-  return fetch(SUPABASE_URL + '/rest/v1/' + path, { ...opts, headers });
-}
+let lots = [], acIdx = -1;
 
-function switchTab(name) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  event.currentTarget.classList.add('active');
-  if (name === 'history') loadHistory();
-  if (name === 'today')   loadToday();
+// ── HELPERS ──────────────────────────────────────────────────
+const today = () => new Date().toISOString().slice(0,10);
+const fmt   = d => { if(!d) return ''; const [y,m,day]=d.split('-'); return `${m}/${day}/${y}`; };
+const api   = (path, opts={}) => fetch(SUPABASE_URL+'/rest/v1/'+path, {
+  ...opts,
+  headers: { apikey:SUPABASE_KEY, Authorization:'Bearer '+SUPABASE_KEY, 'Content-Type':'application/json', Prefer:'return=representation', ...(opts.headers||{}) }
+});
+
+// ── TABS ─────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='history') loadHistory();
+  if(name==='today')   loadToday();
 }
 
-window.onload = function() {
+// ── INIT ─────────────────────────────────────────────────────
+window.onload = () => {
   const t = today();
   document.getElementById('f-date').value = t;
-  document.getElementById('today-label').textContent = new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
-  document.getElementById('print-date-label').textContent = 'Date: ' + new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
-  document.getElementById('today-card-title').textContent = "Today's Pick Up List — " + new Date().toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
-  document.getElementById('h-from').value = new Date(Date.now() - 30*86400000).toISOString().slice(0,10);
+  const dl = new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('today-label').textContent = dl;
+  document.getElementById('print-date-label').textContent = 'Date: '+dl;
+  document.getElementById('today-card-title').textContent = "Today's Pick Up List — "+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('h-from').value = new Date(Date.now()-30*86400000).toISOString().slice(0,10);
   document.getElementById('h-to').value = t;
-  document.getElementById('lot-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); addLot(); }
-  });
+  document.addEventListener('click', e => { if(!e.target.closest('.lot-input-row')) hideAC(); });
 };
 
-function addLot() {
-  const inp = document.getElementById('lot-input');
-  const val = inp.value.trim().toUpperCase();
-  if (!val) return;
-  if (!lots.includes(val)) { lots.push(val); renderLots(); }
-  inp.value = ''; inp.focus();
-}
-function removeLot(i) { lots.splice(i, 1); renderLots(); }
-function renderLots() {
-  document.getElementById('lot-pills-container').innerHTML = lots.map((l, i) =>
-    `<div class="lot-pill">${l} <span class="rm" onclick="removeLot(${i})">✕</span></div>`
+// ── LOT AUTOCOMPLETE ─────────────────────────────────────────
+function onLotInput() {
+  const q = document.getElementById('lot-input').value.trim().toUpperCase();
+  const list = document.getElementById('ac-list');
+  acIdx = -1;
+  if(q.length < 2) { list.style.display='none'; return; }
+  const matches = BOL_LOTS.filter(l => l.includes(q)).slice(0,12);
+  if(!matches.length) { list.style.display='none'; return; }
+  list.innerHTML = matches.map((m,i) =>
+    `<div class="ac-item" onmousedown="selectLot('${m}')">${m}</div>`
   ).join('');
+  list.style.display = 'block';
+}
+function onLotKey(e) {
+  const list = document.getElementById('ac-list');
+  const items = list.querySelectorAll('.ac-item');
+  if(e.key==='ArrowDown') { acIdx=Math.min(acIdx+1,items.length-1); highlightAC(items); e.preventDefault(); }
+  else if(e.key==='ArrowUp') { acIdx=Math.max(acIdx-1,0); highlightAC(items); e.preventDefault(); }
+  else if(e.key==='Enter') { e.preventDefault(); acIdx>=0 && items[acIdx] ? selectLot(items[acIdx].textContent) : addLotFromInput(); }
+  else if(e.key==='Escape') hideAC();
+}
+function highlightAC(items) {
+  items.forEach((it,i) => it.classList.toggle('selected', i===acIdx));
+}
+function selectLot(val) {
+  addLot(val);
+  document.getElementById('lot-input').value='';
+  hideAC();
+}
+function hideAC() { document.getElementById('ac-list').style.display='none'; acIdx=-1; }
+function addLotFromInput() {
+  const inp = document.getElementById('lot-input');
+  addLot(inp.value.trim().toUpperCase());
+  inp.value=''; inp.focus(); hideAC();
+}
+function addLot(val) {
+  if(!val) return;
+  if(!lots.includes(val)) { lots.push(val); renderLots(); }
+}
+function removeLot(i) { lots.splice(i,1); renderLots(); }
+function renderLots() {
+  document.getElementById('lot-pills-container').innerHTML =
+    lots.map((l,i)=>`<div class="lot-pill">${l} <span class="rm" onclick="removeLot(${i})">✕</span></div>`).join('');
 }
 
+// ── SUBMIT ────────────────────────────────────────────────────
 async function submitRequest(e) {
   e.preventDefault();
-  const btn = document.getElementById('submit-btn');
-  const alrt = document.getElementById('form-alert');
-  alrt.className = 'alert'; alrt.style.display = 'none';
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Submitting…';
-
+  const btn=document.getElementById('submit-btn'), alrt=document.getElementById('form-alert');
+  alrt.className='alert'; alrt.style.display='none';
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Submitting…';
   const payload = {
     request_date: document.getElementById('f-date').value,
     knitter:      document.getElementById('f-knitter').value,
     customer:     document.getElementById('f-customer').value,
-    qty:          parseInt(document.getElementById('f-qty').value) || 1,
+    qty:          parseInt(document.getElementById('f-qty').value)||1,
     lot_number:   lots.length ? lots.join(', ') : null,
-    notes:        document.getElementById('f-notes').value.trim() || null,
+    notes:        document.getElementById('f-notes').value.trim()||null,
     status:       'Pending'
   };
-
   try {
-    const res = await api(TABLE, { method: 'POST', body: JSON.stringify(payload) });
-    if (res.ok) {
-      alrt.className = 'alert success show';
-      alrt.textContent = `✅ Request submitted! ${payload.qty} lot(s) for ${payload.customer} from ${payload.knitter} — ${fmt(payload.request_date)}`;
+    const res = await api(TABLE,{method:'POST',body:JSON.stringify(payload)});
+    if(res.ok) {
+      alrt.className='alert success show';
+      alrt.textContent=`✅ Request submitted! ${payload.qty} lot(s) for ${payload.customer} from ${payload.knitter} — ${fmt(payload.request_date)}`;
       resetForm();
-    } else {
-      const err = await res.json();
-      throw new Error(err.message || 'Unknown error');
-    }
+    } else { const err=await res.json(); throw new Error(err.message||'Unknown error'); }
   } catch(err) {
-    alrt.className = 'alert error show';
-    alrt.textContent = '❌ Error: ' + err.message;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Submit Request';
-  }
+    alrt.className='alert error show'; alrt.textContent='❌ Error: '+err.message;
+  } finally { btn.disabled=false; btn.textContent='Submit Request'; }
 }
-
 function resetForm() {
   document.getElementById('request-form').reset();
-  document.getElementById('f-date').value = today();
-  lots = []; renderLots();
+  document.getElementById('f-date').value=today();
+  lots=[]; renderLots();
 }
 
+// ── HISTORY ──────────────────────────────────────────────────
 async function loadHistory() {
-  const tbody = document.getElementById('history-body');
-  tbody.innerHTML = `<tr><td colspan="9" class="loading-msg"><span class="spinner"></span> Loading…</td></tr>`;
-
-  const from     = document.getElementById('h-from').value;
-  const to       = document.getElementById('h-to').value;
-  const status   = document.getElementById('h-status').value;
-  const knitter  = document.getElementById('h-knitter').value;
-  const customer = document.getElementById('h-customer').value.trim().toUpperCase();
-
-  let qs = `${TABLE}?order=request_date.desc,created_at.desc&select=*`;
-  if (from)     qs += `&request_date=gte.${from}`;
-  if (to)       qs += `&request_date=lte.${to}`;
-  if (status)   qs += `&status=eq.${encodeURIComponent(status)}`;
-  if (knitter)  qs += `&knitter=eq.${encodeURIComponent(knitter)}`;
-  if (customer) qs += `&customer=ilike.*${customer}*`;
-
+  const tbody=document.getElementById('history-body');
+  tbody.innerHTML=`<tr><td colspan="9" class="loading-msg"><span class="spinner"></span> Loading…</td></tr>`;
+  const from=document.getElementById('h-from').value, to=document.getElementById('h-to').value;
+  const status=document.getElementById('h-status').value, knitter=document.getElementById('h-knitter').value;
+  const customer=document.getElementById('h-customer').value.trim().toUpperCase();
+  let qs=`${TABLE}?order=request_date.desc,created_at.desc&select=*`;
+  if(from)     qs+=`&request_date=gte.${from}`;
+  if(to)       qs+=`&request_date=lte.${to}`;
+  if(status)   qs+=`&status=eq.${encodeURIComponent(status)}`;
+  if(knitter)  qs+=`&knitter=eq.${encodeURIComponent(knitter)}`;
+  if(customer) qs+=`&customer=ilike.*${customer}*`;
   try {
-    const res  = await api(qs);
-    const rows = await res.json();
-    const all  = await api(`${TABLE}?select=status`);
-    const allRows = await all.json();
-    const cnt = s => allRows.filter(r => r.status === s).length;
-    document.getElementById('s-total').textContent     = allRows.length;
-    document.getElementById('s-pending').textContent   = cnt('Pending');
-    document.getElementById('s-done').textContent      = cnt('Picked Up');
-    document.getElementById('s-cancelled').textContent = cnt('Cancelled');
-
-    if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="9" class="empty-msg">No requests found for the selected filters.</td></tr>`;
-      return;
-    }
-    tbody.innerHTML = rows.map((r, i) => `
+    const [res,allRes] = await Promise.all([api(qs), api(`${TABLE}?select=status`)]);
+    const rows=await res.json(), allRows=await allRes.json();
+    const cnt=s=>allRows.filter(r=>r.status===s).length;
+    document.getElementById('s-total').textContent=allRows.length;
+    document.getElementById('s-pending').textContent=cnt('Pending');
+    document.getElementById('s-done').textContent=cnt('Picked Up');
+    document.getElementById('s-cancelled').textContent=cnt('Cancelled');
+    if(!rows.length) { tbody.innerHTML=`<tr><td colspan="9" class="empty-msg">No requests found.</td></tr>`; return; }
+    tbody.innerHTML=rows.map((r,i)=>`
       <tr>
-        <td>${i+1}</td>
-        <td>${fmt(r.request_date)}</td>
-        <td><strong>${r.knitter}</strong></td>
-        <td>${r.customer}</td>
+        <td>${i+1}</td><td>${fmt(r.request_date)}</td>
+        <td><strong>${r.knitter}</strong></td><td>${r.customer}</td>
         <td style="text-align:center">${r.qty}</td>
-        <td>${r.lot_number || '<span style="color:#aaa">—</span>'}</td>
+        <td>${r.lot_number||'<span style="color:#aaa">—</span>'}</td>
         <td><span class="badge ${r.status}">${r.status}</span></td>
-        <td>${r.notes || ''}</td>
+        <td>${r.notes||''}</td>
         <td class="no-print">
-          ${r.status === 'Pending' ? `
-            <button class="act-btn pickup" onclick="updateStatus(${r.id},'Picked Up')">✅ Picked Up</button>
-            <button class="act-btn cancel" onclick="updateStatus(${r.id},'Cancelled')">✖ Cancel</button>
-          ` : `
-            <button class="act-btn delete" onclick="updateStatus(${r.id},'Pending')">↩ Revert</button>
-          `}
+          ${r.status==='Pending'
+            ? `<button class="act-btn pickup" onclick="updateStatus(${r.id},'Picked Up')">✅ Picked Up</button>
+               <button class="act-btn cancel" onclick="updateStatus(${r.id},'Cancelled')">✖ Cancel</button>`
+            : `<button class="act-btn revert" onclick="updateStatus(${r.id},'Pending')">↩ Revert</button>`}
         </td>
       </tr>`).join('');
-  } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="9" class="empty-msg" style="color:red">Error: ${err.message}</td></tr>`;
-  }
+  } catch(err) { tbody.innerHTML=`<tr><td colspan="9" class="empty-msg" style="color:red">Error: ${err.message}</td></tr>`; }
 }
-
 function clearFilters() {
-  document.getElementById('h-from').value = new Date(Date.now() - 30*86400000).toISOString().slice(0,10);
-  document.getElementById('h-to').value = today();
-  document.getElementById('h-status').value = '';
-  document.getElementById('h-knitter').value = '';
-  document.getElementById('h-customer').value = '';
+  document.getElementById('h-from').value=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+  document.getElementById('h-to').value=today();
+  ['h-status','h-knitter'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('h-customer').value='';
   loadHistory();
 }
-
-async function updateStatus(id, newStatus) {
-  const patch = { status: newStatus };
-  if (newStatus === 'Picked Up') patch.picked_up_at = new Date().toISOString();
-  if (newStatus === 'Pending')   patch.picked_up_at = null;
-  const res = await api(`${TABLE}?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(patch) });
-  if (res.ok) loadHistory();
-  else alert('Failed to update status.');
+async function updateStatus(id,newStatus) {
+  const patch={status:newStatus};
+  if(newStatus==='Picked Up') patch.picked_up_at=new Date().toISOString();
+  if(newStatus==='Pending')   patch.picked_up_at=null;
+  const res=await api(`${TABLE}?id=eq.${id}`,{method:'PATCH',body:JSON.stringify(patch)});
+  if(res.ok) loadHistory(); else alert('Failed to update status.');
 }
 
+// ── TODAY'S LIST ─────────────────────────────────────────────
 async function loadToday() {
-  const tbody = document.getElementById('today-body');
-  tbody.innerHTML = `<tr><td colspan="7" class="loading-msg"><span class="spinner"></span> Loading…</td></tr>`;
+  const tbody=document.getElementById('today-body');
+  tbody.innerHTML=`<tr><td colspan="7" class="loading-msg"><span class="spinner"></span> Loading…</td></tr>`;
   try {
-    const res  = await api(`${TABLE}?request_date=eq.${today()}&order=knitter.asc,customer.asc&select=*`);
-    const rows = await res.json();
-    const total = rows.reduce((s,r) => s + (r.qty||0), 0);
-    document.getElementById('today-total').textContent = rows.length
-      ? `Total: ${rows.length} request(s) — ${total} lot(s)/roll(s)` : '';
-    if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="7" class="empty-msg">No requests for today yet.</td></tr>`;
-      return;
-    }
-    tbody.innerHTML = rows.map((r, i) => `
+    const res=await api(`${TABLE}?request_date=eq.${today()}&order=knitter.asc,customer.asc&select=*`);
+    const rows=await res.json();
+    const total=rows.reduce((s,r)=>s+(r.qty||0),0);
+    document.getElementById('today-total').textContent=rows.length?`Total: ${rows.length} request(s) — ${total} lot(s)/roll(s)`:'';
+    if(!rows.length) { tbody.innerHTML=`<tr><td colspan="7" class="empty-msg">No requests for today yet.</td></tr>`; return; }
+    tbody.innerHTML=rows.map((r,i)=>`
       <tr>
-        <td>${i+1}</td>
-        <td><strong>${r.knitter}</strong></td>
-        <td>${r.customer}</td>
+        <td>${i+1}</td><td><strong>${r.knitter}</strong></td><td>${r.customer}</td>
         <td style="text-align:center">${r.qty}</td>
-        <td>${r.lot_number || '—'}</td>
+        <td>${r.lot_number||'—'}</td>
         <td><span class="badge ${r.status}">${r.status}</span></td>
-        <td>${r.notes || ''}</td>
+        <td>${r.notes||''}</td>
       </tr>`).join('');
-  } catch(err) {
-    tbody.innerHTML = `<tr><td colspan="7" class="empty-msg" style="color:red">Error: ${err.message}</td></tr>`;
-  }
+  } catch(err) { tbody.innerHTML=`<tr><td colspan="7" class="empty-msg" style="color:red">Error: ${err.message}</td></tr>`; }
 }
 </script>
 </body>
