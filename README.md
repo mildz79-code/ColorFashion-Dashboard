@@ -1,136 +1,104 @@
-# OpsMaster — Employee Tracking Module
+# CF Financial Dashboard
 
-## What's in this package
+Financial reporting and P&L analysis for **Color Fashion Dye & Finishing**.
+
+## Structure
 
 ```
-opsmaster-employee/
+.
+├── 2026_monthly_budget.xlsx          # Original 2026 budget (Jan baseline populated)
+├── 2026_monthly_budget_korean.xlsx   # Korean-language parallel version
+├── prompt_to_recreate_2026_budget.md # Reusable prompt for regenerating the budget
+├── data/
+│   └── 2026/
+│       ├── Jan_PL.csv                # January 2026 QuickBooks P&L export
+│       ├── Feb_PL.csv                # February 2026 QuickBooks P&L export
+│       ├── Mar_PL.csv                # March 2026 QuickBooks P&L export
+│       └── 2026_YTD_Forecast.xlsx    # Q1 actuals + Apr–Dec forecast model
+├── scripts/
+│   └── build_ytd_forecast.py         # Regenerates 2026_YTD_Forecast.xlsx
 ├── supabase/
-│   └── schema.sql              ← Run this in Supabase SQL editor first
-├── importer/
-│   ├── importer.js             ← Wasp CSV watcher + importer (Node.js)
-│   ├── package.json
-│   └── .env.example            ← Copy to .env and fill in your values
-└── dashboard/
-    └── employee-tracking.html  ← Full React dashboard page
+│   └── migrations/
+│       ├── 001_create_pl_tables.sql      # pl_line_items + pl_monthly
+│       ├── 002_create_pl_views.sql       # pl_monthly_wide + pl_category_summary
+│       ├── 003_create_storage_bucket.sql # private 'financials' bucket
+│       └── 004_seed_2026_data.sql        # 2026 line items + Q1 actuals + budget
+├── docs/
+│   └── SCHEMA.md                     # Database schema reference
+├── .gitignore
+├── requirements.txt
+└── README.md
 ```
 
----
+## Supabase
 
-## Step 1 — Set up Supabase schema
+**Project:** `ColorFashion Dashboard` (ref: `cgsmzkafagnmsuzzkfnv`)
 
-1. Go to your Supabase project → SQL Editor
-2. Paste the contents of `supabase/schema.sql`
-3. Run it — creates 5 tables, 2 views, indexes, and RLS policies
+### Tables
 
-Tables created:
-- `employees`        — master record per person (keyed by Wasp employee ID)
-- `shifts`           — clock in/out per employee per day
-- `payroll_runs`     — log of each CSV import batch
-- `payroll_entries`  — individual pay lines per employee per run
-- `import_errors`    — bad rows from failed imports
+| Table | Purpose |
+|---|---|
+| `public.pl_line_items` | Chart of accounts — 49 rows across REVENUE / COGS / OPEX / OTHER categories |
+| `public.pl_monthly` | Fact table in long format: `(line_item_id, year, month, amount, source)` where source ∈ `actual`, `budget`, `forecast` |
 
----
+### Views
 
-## Step 2 — Configure the importer
+- `public.pl_monthly_wide` — pivoted (Jan…Dec columns per row)
+- `public.pl_category_summary` — per-month Revenue / COGS / OpEx / Gross Profit / Net Income
+
+### Example queries
+
+```sql
+-- Full-year actuals vs budget, by line item
+select li.label, li.category,
+       sum(case when source = 'actual' then amount else 0 end) as actual,
+       sum(case when source = 'budget' then amount else 0 end) as budget,
+       sum(case when source = 'actual' then amount else 0 end)
+         - sum(case when source = 'budget' then amount else 0 end) as variance
+from pl_monthly pm
+join pl_line_items li on li.id = pm.line_item_id
+where pm.year = 2026
+group by li.id, li.label, li.category, li.sort_order
+order by li.sort_order;
+
+-- Monthly P&L rollup
+select * from pl_category_summary
+where year = 2026 and source = 'actual'
+order by month;
+```
+
+## Regenerating the YTD Forecast spreadsheet
 
 ```bash
-cd importer
-npm install
-cp .env.example .env
-# Edit .env with your Supabase URL, service key, and Wasp folder path
+pip install -r requirements.txt
+python3 scripts/build_ytd_forecast.py
 ```
 
-Your `.env` needs:
-```
-SUPABASE_URL=https://mtxokbgpmkggolyfeehz.supabase.co
-SUPABASE_SERVICE_KEY=your-service-role-key   # Settings > API in Supabase
-WASP_EXPORT_FOLDER=C:/WaspExports/Payroll    # Path Wasp writes CSVs to
-```
+Inputs: `data/2026/*.csv` + `2026_monthly_budget.xlsx` (at repo root)
+Output: `data/2026/2026_YTD_Forecast.xlsx`
 
----
+## Uploading the xlsx to Supabase Storage
 
-## Step 3 — Map your Wasp CSV columns
-
-Open `importer.js` and find the `COL` object near the top.
-Run one real Wasp export and check the column headers, then update:
-
-```js
-const COL = {
-  wasp_id:    'Employee ID',   // ← change to match your actual column name
-  first_name: 'First Name',
-  // ...etc
-};
-```
-
-To see your real column names, temporarily add this after `parse()`:
-```js
-console.log('Columns:', Object.keys(rows[0]));
-```
-
----
-
-## Step 4 — Run the importer
-
-**Development (watch mode):**
 ```bash
-node importer.js
+# Install Supabase CLI:  brew install supabase/tap/supabase
+supabase storage cp data/2026/2026_YTD_Forecast.xlsx \
+  supabase://financials/2026/2026_YTD_Forecast.xlsx \
+  --project-ref cgsmzkafagnmsuzzkfnv
 ```
 
-**Production (as a Windows service or cron):**
+Or via the dashboard: Storage → `financials` bucket → Upload file.
 
-Windows — Task Scheduler:
-- Action: `node C:\opsmaster\importer\importer.js`
-- Trigger: Every 15 minutes, or on file creation in the Wasp folder
+## 2026 Q1 Snapshot
 
-Linux/Mac — crontab:
-```
-*/15 * * * * /usr/bin/node /path/to/importer/importer.js >> /var/log/opsmaster.log 2>&1
-```
+| Metric | Amount |
+|---|---:|
+| Q1 Revenue | $2,521,671 |
+| Q1 COGS | $1,704,289 |
+| Q1 Gross Profit | $817,382 |
+| Q1 Operating Expenses | $702,218 |
+| Q1 Other Income | $3,808 |
+| **Q1 Net Income** | **$118,972** |
 
-The importer will:
-1. Watch for new `.csv` files in your Wasp export folder
-2. Parse and validate each row
-3. Upsert employee records (won't create duplicates)
-4. Insert shift records and payroll entries
-5. Log any bad rows to `import_errors` table
-6. Move processed files to `_processed/` subfolder
-7. Move failed files to `_errors/` subfolder
+Monthly Net Income: Jan $31,555 · Feb ($64,318) · Mar $151,735.
 
----
-
-## Step 5 — Connect the dashboard to Supabase
-
-In `employee-tracking.html`, replace the mock data section with real Supabase queries.
-Add to the `<head>`:
-```html
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-```
-
-Then replace `MOCK_EMPLOYEES` load with:
-```js
-const { data } = await supabase
-  .from('employees')
-  .select('*, shifts(clock_in, clock_out, shift_date, shift_label)')
-  .eq('status', 'active');
-```
-
-For real-time updates as new imports land:
-```js
-supabase
-  .channel('employees')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'employees' }, 
-      payload => refetchData())
-  .subscribe();
-```
-
----
-
-## Wasp payroll export tips
-
-In Wasp payroll:
-- Go to Reports → Export → Payroll Detail
-- Set format: CSV
-- Set destination: your shared network folder
-- Schedule: nightly or per pay period
-
-The importer handles the rest automatically.
+Reconciles to the 2026 Q1 Balance Sheet Net Income line exactly.
